@@ -92,11 +92,29 @@
         .close-btn:hover { color: white; }
         .small-btn { width: auto; padding: 0.5rem 1rem; display: inline-block; margin-right: 0.5rem; }
         .top-buttons { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .login-msg { min-height: 1.25rem; margin-bottom: 0.75rem; text-align: center; font-size: 0.9rem; color: #fca5a5; }
+        .login-msg.ok { color: #6ee7b7; }
+        .known-users { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.5rem; }
+        .known-users button { background: #334155; color: #e2e8f0; padding: 0.4rem 0.8rem; margin: 0; font-size: 0.9rem; }
+        #loadingOverlay { position: fixed; inset: 0; background: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 500; color: #cbd5e1; gap: 0.75rem; }
+        #loadingOverlay.hidden { display: none; }
+        .spinner { width: 36px; height: 36px; border: 4px solid #334155; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #syncBadge { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 0.5rem); right: 0.75rem; font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 999px; background: #1e293b; color: #94a3b8; z-index: 400; display: none; }
+        #syncBadge.show { display: block; }
+        #syncBadge.err { color: #fca5a5; }
+        .eleve-row { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 0.6rem 0.75rem; margin-bottom: 0.4rem; }
+        .eleve-row .eleve-top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .eleve-row .eleve-stats { font-size: 0.8rem; color: #94a3b8; }
+        .eleve-row .eleve-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.4rem; }
+        .eleve-row .eleve-actions button { padding: 0.35rem 0.6rem; margin: 0; font-size: 0.8rem; }
         .top-buttons button { flex: 1; margin-bottom: 0; }
         canvas { display: block; background: #0f172a; border-radius: 8px; margin: 1rem 0; }
     </style>
 </head>
 <body>
+    <div id="loadingOverlay"><div class="spinner"></div><div id="loadingText">Chargement…</div></div>
+    <div id="syncBadge"></div>
     <div id="app">
         <!-- Login Screen -->
         <div id="loginScreen" class="screen active">
@@ -104,11 +122,16 @@
                 <h1>👋 Conjugaison Master</h1>
                 <p style="text-align: center; margin-bottom: 1rem; color: #cbd5e1;">Apprendre les conjugaisons françaises</p>
                 
-                <input type="text" id="usernameInput" placeholder="Entre ton pseudo..." autocomplete="off">
-                <button class="btn-primary btn-full" onclick="app.login()">Se Connecter</button>
+                <input type="text" id="usernameInput" placeholder="Ton pseudo..." autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
+                <input type="password" id="passwordInput" placeholder="Ton mot de passe..." autocomplete="current-password" onkeydown="if(event.key==='Enter')app.login()">
+                <div id="loginMsg" class="login-msg"></div>
+                <button class="btn-primary btn-full" id="loginBtn" onclick="app.login()">Se Connecter</button>
+                <button class="btn-success btn-full" id="signupBtn" onclick="app.signup()">✨ Créer un compte</button>
 
-                <h2 style="margin-top: 1.5rem; font-size: 1rem; color: #94a3b8;">Utilisateurs Précédents</h2>
-                <div id="usersList"></div>
+                <div id="knownUsersBlock" style="display: none;">
+                    <h2 style="margin-top: 1.5rem; font-size: 1rem; color: #94a3b8;">Déjà utilisés sur cet appareil</h2>
+                    <div id="usersList" class="known-users"></div>
+                </div>
 
                 <button class="btn-danger btn-full" style="margin-top: 1rem; font-size: 0.875rem;" onclick="app.showAdminPanel()">⚙️ Admin</button>
             </div>
@@ -130,9 +153,18 @@
         <div id="adminPanel" class="modal">
             <div class="modal-content">
                 <h2>Admin Panel <span class="close-btn" onclick="app.closeAdminPanel()">✕</span></h2>
-                <input type="password" id="adminPassword" placeholder="Mot de passe admin...">
-                <button class="btn-primary btn-full" onclick="app.unlockAdmin()">Déverrouiller</button>
+                <div id="adminLogin">
+                    <input type="password" id="adminPassword" placeholder="Mot de passe admin..." onkeydown="if(event.key==='Enter')app.unlockAdmin()">
+                    <button class="btn-primary btn-full" id="adminUnlockBtn" onclick="app.unlockAdmin()">Déverrouiller</button>
+                </div>
                 <div id="adminContent" style="display: none; margin-top: 1rem;">
+                    <h3>Élèves 👩‍🎓</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; margin-bottom: 0.5rem;">Comptes enregistrés en ligne. Tu peux réinitialiser un mot de passe oublié, ajuster les crédits ou supprimer un compte.</p>
+                    <button class="btn-primary btn-full" onclick="app.loadEleves()">🔄 Actualiser la liste</button>
+                    <div id="adminEleves" style="background: #0f172a; border: 1px solid #475569; border-radius: 8px; padding: 0.75rem; max-height: 320px; overflow-y: auto; margin-bottom: 1rem;"></div>
+
+                    <hr style="border: none; border-top: 1px solid #475569; margin: 1.5rem 0;">
+
                     <h3>Gérer les Questions 🎯</h3>
                     <p style="font-size: 0.875rem; color: #94a3b8; margin-bottom: 1rem;">Clique sur une question pour changer ses réponses</p>
                     
@@ -156,6 +188,12 @@
                     <button class="btn-primary btn-full" onclick="app.exportQCM()">📥 Exporter QCM</button>
                     <button class="btn-primary btn-full" onclick="document.getElementById('importQCMInput').click()">📤 Importer QCM</button>
                     <input type="file" id="importQCMInput" accept=".json" style="display: none;" onchange="app.importQCM(event)">
+
+                    <hr style="border: none; border-top: 1px solid #475569; margin: 1.5rem 0;">
+
+                    <h3>Mot de passe admin 🔑</h3>
+                    <input type="password" id="newAdminPassword" placeholder="Nouveau mot de passe (8 caractères min.)" autocomplete="new-password">
+                    <button class="btn-primary btn-full" onclick="app.changeAdminPassword()">Changer le mot de passe admin</button>
                 </div>
             </div>
         </div>
@@ -304,7 +342,101 @@
     </div>
 
     <script>
-        const ADMIN_PASSWORD = 'admin2024';
+        // ===== Connexion à la base en ligne (Supabase) =====
+        // La clé "anon" est faite pour être publique : la sécurité est assurée
+        // côté serveur par les fonctions SQL (mots de passe chiffrés, jetons).
+        const SUPABASE_URL = 'https://gankrkshousaqfmgpvcg.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdhbmtya3Nob3VzYXFmbWdwdmNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyOTIwMzUsImV4cCI6MjEwNTg2ODAzNX0.ywZoYnfp7aidrL-gAnt1iCKeEmMIrIgRPov--eFJ3EU';
+
+        const ERREURS = {
+            PSEUDO_PRIS: 'Ce pseudo est déjà pris. Choisis-en un autre !',
+            PSEUDO_INVALIDE: 'Pseudo : 2 à 20 caractères (lettres, chiffres, espace, - _ .)',
+            MDP_COURT: 'Le mot de passe est trop court.',
+            IDENTIFIANTS: 'Pseudo ou mot de passe incorrect.',
+            SESSION: 'Ta session a expiré, reconnecte-toi.',
+            ADMIN: 'Session admin expirée, déverrouille à nouveau.',
+            ADMIN_MDP: 'Mauvais mot de passe admin !',
+            RESEAU: 'Pas de connexion internet. Réessaie dans un instant.'
+        };
+        const msgErreur = (e) => ERREURS[e && e.code] || (e && e.message) || 'Erreur inconnue';
+
+        const escapeHTML = (t) => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+        const safeLS = {
+            get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+            set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+            del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+        };
+
+        const cloud = {
+            async rpc(fn, args = {}, opts = {}) {
+                let res;
+                try {
+                    res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+                        method: 'POST',
+                        keepalive: !!opts.keepalive,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                        },
+                        body: JSON.stringify(args)
+                    });
+                } catch (e) {
+                    const err = new Error(ERREURS.RESEAU); err.code = 'RESEAU'; throw err;
+                }
+                const txt = await res.text();
+                let data = null;
+                try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = txt; }
+                if (!res.ok) {
+                    const code = data && data.message;
+                    const err = new Error(ERREURS[code] || code || `Erreur serveur (${res.status})`);
+                    err.code = code;
+                    throw err;
+                }
+                return data;
+            }
+        };
+
+        // Synchronisation de la progression de l'élève (points, crédits)
+        const sync = {
+            timer: null,
+            pending: false,
+            schedule(delay = 1200) {
+                this.pending = true;
+                clearTimeout(this.timer);
+                this.timer = setTimeout(() => this.flush(), delay);
+            },
+            async flush(keepalive = false) {
+                clearTimeout(this.timer);
+                if (!this.pending || !app.token) return;
+                this.pending = false;
+                try {
+                    await cloud.rpc('sauver_progression', {
+                        p_token: app.token,
+                        p_total: app.totalPoints,
+                        p_session: app.sessionPoints,
+                        p_credits: app.credits
+                    }, { keepalive });
+                    this.badge('');
+                } catch (e) {
+                    if (e.code === 'SESSION') { app.forceLogout(); return; }
+                    this.pending = true;
+                    this.badge('⚠️ Hors ligne – sauvegarde en attente', true);
+                    this.timer = setTimeout(() => this.flush(), 15000);
+                }
+            },
+            badge(text, err = false) {
+                const b = document.getElementById('syncBadge');
+                if (!b) return;
+                b.textContent = text;
+                b.classList.toggle('show', !!text);
+                b.classList.toggle('err', err);
+            }
+        };
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') sync.flush(true); });
+        window.addEventListener('pagehide', () => sync.flush(true));
+        window.addEventListener('online', () => sync.flush());
 
         const PHRASES = {
             'aller': [
@@ -1162,33 +1294,30 @@
             'simple': 'Passé Simple'
         };
 
+        // Progression : gardée en mémoire et envoyée en ligne (via sync)
+        // Réglages admin (QCM, réponses, prix) : lus en ligne, partagés par tous
         const storage = {
-            getUser: () => localStorage.getItem('conj_user'),
-            setUser: (u) => localStorage.setItem('conj_user', u),
-            getPoints: (u) => parseInt(localStorage.getItem(`conj_total_${u}`) || 0),
-            setPoints: (u, p) => localStorage.setItem(`conj_total_${u}`, p),
-            getSession: (u) => parseInt(localStorage.getItem(`conj_session_${u}`) || 0),
-            setSession: (u, p) => localStorage.setItem(`conj_session_${u}`, p),
-            getCredits: (u) => parseInt(localStorage.getItem(`conj_credits_${u}`) || 0),
-            setCredits: (u, c) => localStorage.setItem(`conj_credits_${u}`, c),
-            getUsers: () => {
-                const users = [];
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key.startsWith('conj_credits_')) {
-                        users.push(key.replace('conj_credits_', ''));
-                    }
-                }
-                return users;
+            getPoints: () => app.totalPoints,
+            setPoints: (u, p) => { app.totalPoints = parseInt(p) || 0; sync.schedule(); },
+            getSession: () => app.sessionPoints,
+            setSession: (u, p) => { app.sessionPoints = parseInt(p) || 0; sync.schedule(); },
+            getCredits: () => app.credits,
+            setCredits: (u, c) => { app.credits = parseInt(c) || 0; sync.schedule(); },
+            getKnownUsers: () => { try { return JSON.parse(safeLS.get('conj_known_users') || '[]'); } catch (e) { return []; } },
+            addKnownUser: (u) => {
+                const list = storage.getKnownUsers().filter(x => x.toLowerCase() !== u.toLowerCase());
+                list.unshift(u);
+                safeLS.set('conj_known_users', JSON.stringify(list.slice(0, 12)));
             },
-            getQCM: () => JSON.parse(localStorage.getItem('conj_qcm') || '{}'),
-            setQCM: (data) => localStorage.setItem('conj_qcm', JSON.stringify(data)),
-            getArcadePrice: () => parseInt(localStorage.getItem('conj_arcade_price') || 3),
-            setArcadePrice: (p) => localStorage.setItem('conj_arcade_price', p)
+            async setQCM(data) { await app.adminSave('qcm', data); },
+            async setArcadePrice(p) { await app.adminSave('prix_arcade', p); }
         };
 
         const app = {
             username: null,
+            token: null,
+            adminToken: null,
+            answerOverrides: {},
             currentScreen: 'login',
             sessionPoints: 0,
             totalPoints: 0,
@@ -4571,21 +4700,315 @@
             currentEditingQuestion: null,
             allQCMQuestions: [],
 
-            init() {
+            async init() {
                 // TOUJOURS utiliser la constante VERBS_DB — jamais le localStorage
                 this.verbsDB = VERBS_DB;
-                
-                this.qcmData = storage.getQCM();
-                this.arcadePrice = storage.getArcadePrice();
+                this.defaultAnswers = {};
+                this.qcmData = {};
+                this.arcadePrice = 3;
                 this.setupTensesCheckboxes();
-                const user = storage.getUser();
-                if (user) {
-                    this.username = user;
-                    this.loadUserData();
-                    this.showScreen('home');
-                } else {
-                    this.refreshUsersList();
+
+                await this.loadSettings();
+
+                const token = safeLS.get('conj_token');
+                if (token) {
+                    try {
+                        const profil = await cloud.rpc('moi', { p_token: token });
+                        this.applyProfil(profil);
+                        this.hideLoading();
+                        this.showScreen('home');
+                        return;
+                    } catch (e) {
+                        if (e.code !== 'RESEAU') safeLS.del('conj_token');
+                        else this.setLoginMsg(ERREURS.RESEAU);
+                    }
                 }
+                this.refreshUsersList();
+                this.hideLoading();
+            },
+
+            hideLoading() {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            },
+
+            // Réglages partagés : QCM modifiés, réponses corrigées, prix des arcades
+            async loadSettings() {
+                let r = null;
+                try {
+                    r = await cloud.rpc('lire_reglages');
+                    safeLS.set('conj_reglages_cache', JSON.stringify(r));
+                } catch (e) {
+                    try { r = JSON.parse(safeLS.get('conj_reglages_cache') || 'null'); } catch (err) { r = null; }
+                }
+                if (!r) return;
+                this.qcmData = (r.qcm && typeof r.qcm === 'object') ? r.qcm : {};
+                this.arcadePrice = Number.isFinite(parseInt(r.prix_arcade)) ? parseInt(r.prix_arcade) : 3;
+                this.applyAnswerOverrides((r.reponses && typeof r.reponses === 'object') ? r.reponses : {});
+            },
+
+            applyAnswerOverrides(overrides) {
+                // Restaure d'abord les réponses d'origine, puis applique les corrections
+                for (const key of Object.keys(this.defaultAnswers)) {
+                    const [verb, tense, pronoun] = key.split('-');
+                    this.verbsDB[verb][tense][pronoun] = this.defaultAnswers[key];
+                }
+                this.answerOverrides = overrides;
+                for (const key of Object.keys(overrides)) {
+                    const [verb, tense, pronoun] = key.split('-');
+                    const v = this.verbsDB[verb] && this.verbsDB[verb][tense];
+                    if (v && pronoun in v) {
+                        if (!(key in this.defaultAnswers)) this.defaultAnswers[key] = v[pronoun];
+                        v[pronoun] = overrides[key];
+                    }
+                }
+            },
+
+            setLoginMsg(text, ok = false) {
+                const el = document.getElementById('loginMsg');
+                el.textContent = text || '';
+                el.classList.toggle('ok', ok);
+            },
+
+            setLoginBusy(busy) {
+                document.getElementById('loginBtn').disabled = busy;
+                document.getElementById('signupBtn').disabled = busy;
+            },
+
+            readLoginForm() {
+                const username = document.getElementById('usernameInput').value.trim();
+                const password = document.getElementById('passwordInput').value;
+                if (!username) { this.setLoginMsg('Entre ton pseudo !'); return null; }
+                if (!password) { this.setLoginMsg('Entre ton mot de passe !'); return null; }
+                return { username, password };
+            },
+
+            async login() {
+                const f = this.readLoginForm();
+                if (!f) return;
+                this.setLoginBusy(true);
+                this.setLoginMsg('Connexion…', true);
+                try {
+                    const profil = await cloud.rpc('connexion', { p_pseudo: f.username, p_mdp: f.password });
+                    await this.startSession(profil);
+                } catch (e) {
+                    this.setLoginMsg(msgErreur(e));
+                } finally {
+                    this.setLoginBusy(false);
+                }
+            },
+
+            async signup() {
+                const f = this.readLoginForm();
+                if (!f) return;
+                if (f.password.length < 4) { this.setLoginMsg('Mot de passe : 4 caractères minimum.'); return; }
+                this.setLoginBusy(true);
+                this.setLoginMsg('Création du compte…', true);
+                try {
+                    const profil = await cloud.rpc('inscription', { p_pseudo: f.username, p_mdp: f.password });
+                    await this.startSession(profil);
+                    setTimeout(() => alert(`🎉 Bienvenue ${profil.pseudo} ! Retiens bien ton mot de passe.`), 50);
+                } catch (e) {
+                    this.setLoginMsg(msgErreur(e));
+                } finally {
+                    this.setLoginBusy(false);
+                }
+            },
+
+            async startSession(profil) {
+                safeLS.set('conj_token', profil.token);
+                storage.addKnownUser(profil.pseudo);
+                this.applyProfil(profil);
+                document.getElementById('passwordInput').value = '';
+                this.setLoginMsg('');
+                await this.loadSettings();
+                this.showScreen('home');
+            },
+
+            applyProfil(p) {
+                this.token = p.token;
+                this.username = p.pseudo;
+                this.totalPoints = p.total || 0;
+                this.sessionPoints = p.session || 0;
+                this.credits = p.credits || 0;
+                this.updateUI();
+            },
+
+            loadUserData() {
+                this.updateUI();
+            },
+
+            logout() {
+                this.pendingConfirmAction = () => this.doLogout();
+                document.getElementById('confirmTitle').textContent = 'Déconnexion?';
+                document.getElementById('confirmMessage').textContent = 'Tu quitteras ta session.';
+                document.getElementById('confirmModal').classList.add('active');
+            },
+
+            async doLogout() {
+                await sync.flush();
+                const token = this.token;
+                if (token) cloud.rpc('deconnexion', { p_token: token }).catch(() => {});
+                this.clearSession();
+            },
+
+            forceLogout() {
+                this.clearSession();
+                this.setLoginMsg(ERREURS.SESSION);
+            },
+
+            clearSession() {
+                safeLS.del('conj_token');
+                sync.pending = false;
+                sync.badge('');
+                this.token = null;
+                this.username = null;
+                this.totalPoints = 0;
+                this.sessionPoints = 0;
+                this.credits = 0;
+                document.getElementById('usernameInput').value = '';
+                document.getElementById('passwordInput').value = '';
+                this.closeAdminPanel();
+                this.showScreen('login');
+                this.refreshUsersList();
+            },
+
+            refreshUsersList() {
+                const users = storage.getKnownUsers();
+                const list = document.getElementById('usersList');
+                document.getElementById('knownUsersBlock').style.display = users.length ? 'block' : 'none';
+                list.innerHTML = '';
+                users.forEach(u => {
+                    const b = document.createElement('button');
+                    b.textContent = u;
+                    b.onclick = () => this.loginAs(u);
+                    list.appendChild(b);
+                });
+            },
+
+            loginAs(user) {
+                document.getElementById('usernameInput').value = user;
+                document.getElementById('passwordInput').focus();
+                this.setLoginMsg('');
+            },
+
+            showAdminPanel() {
+                document.getElementById('adminPanel').classList.add('active');
+                if (this.adminToken) this.showAdminContent();
+            },
+
+            closeAdminPanel() {
+                document.getElementById('adminPanel').classList.remove('active');
+                document.getElementById('adminPassword').value = '';
+                document.getElementById('adminContent').style.display = 'none';
+                document.getElementById('adminLogin').style.display = 'block';
+                this.adminToken = null;
+            },
+
+            async unlockAdmin() {
+                const pwd = document.getElementById('adminPassword').value;
+                if (!pwd) return;
+                const btn = document.getElementById('adminUnlockBtn');
+                btn.disabled = true;
+                try {
+                    this.adminToken = await cloud.rpc('admin_connexion', { p_mdp: pwd });
+                    document.getElementById('adminPassword').value = '';
+                    await this.loadSettings();
+                    this.showAdminContent();
+                } catch (e) {
+                    alert(msgErreur(e));
+                } finally {
+                    btn.disabled = false;
+                }
+            },
+
+            showAdminContent() {
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminContent').style.display = 'block';
+                this.loadQCMQuestions();
+                document.getElementById('arcadePrice').value = this.arcadePrice;
+                document.getElementById('arcadePriceDisplay').textContent = this.arcadePrice;
+                this.loadEleves();
+            },
+
+            async adminSave(cle, valeur) {
+                if (!this.adminToken) throw Object.assign(new Error(ERREURS.ADMIN), { code: 'ADMIN' });
+                try {
+                    await cloud.rpc('admin_sauver_reglage', { p_token: this.adminToken, p_cle: cle, p_valeur: valeur });
+                } catch (e) {
+                    if (e.code === 'ADMIN') this.closeAdminPanel();
+                    throw e;
+                }
+            },
+
+            async adminCall(fn, args) {
+                try {
+                    return await cloud.rpc(fn, Object.assign({ p_token: this.adminToken }, args));
+                } catch (e) {
+                    alert('❌ ' + msgErreur(e));
+                    if (e.code === 'ADMIN') this.closeAdminPanel();
+                    throw e;
+                }
+            },
+
+            async loadEleves() {
+                const box = document.getElementById('adminEleves');
+                box.innerHTML = '<p style="color: #94a3b8;">Chargement…</p>';
+                let eleves;
+                try { eleves = await this.adminCall('admin_liste_eleves', {}); } catch (e) { box.innerHTML = ''; return; }
+                this.elevesCache = eleves;
+                if (!eleves.length) { box.innerHTML = '<p style="color: #94a3b8;">Aucun élève inscrit pour le moment.</p>'; return; }
+                box.innerHTML = eleves.map(el => {
+                    const vu = el.last_seen ? new Date(el.last_seen).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '';
+                    return `<div class="eleve-row">
+                        <div class="eleve-top">
+                            <strong>${escapeHTML(el.pseudo)}</strong>
+                            <span class="eleve-stats">⭐ ${el.total} pts · 💳 ${el.credits} · vu le ${vu}</span>
+                        </div>
+                        <div class="eleve-actions">
+                            <button class="btn-primary" onclick="app.adminResetPassword('${el.id}')">🔑 Nouveau mdp</button>
+                            <button class="btn-success" onclick="app.adminSetCredits('${el.id}')">💳 Crédits</button>
+                            <button class="btn-danger" onclick="app.adminDeleteEleve('${el.id}')">🗑️ Supprimer</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            },
+
+            elevePseudo(id) {
+                const el = (this.elevesCache || []).find(x => x.id === id);
+                return el ? el.pseudo : '';
+            },
+
+            async adminResetPassword(id) {
+                const mdp = prompt(`Nouveau mot de passe pour ${this.elevePseudo(id)} (4 caractères min.) :`);
+                if (mdp === null) return;
+                if (mdp.length < 4) { alert('❌ 4 caractères minimum.'); return; }
+                try { await this.adminCall('admin_reset_mdp', { p_eleve: id, p_mdp: mdp }); } catch (e) { return; }
+                alert(`✅ Mot de passe de ${this.elevePseudo(id)} changé. Donne-le lui !`);
+            },
+
+            async adminSetCredits(id) {
+                const el = (this.elevesCache || []).find(x => x.id === id);
+                const val = prompt(`Crédits pour ${this.elevePseudo(id)} :`, el ? el.credits : 0);
+                if (val === null) return;
+                const n = parseInt(val);
+                if (!Number.isFinite(n) || n < 0) { alert('❌ Nombre invalide.'); return; }
+                try { await this.adminCall('admin_modifier_credits', { p_eleve: id, p_credits: n }); } catch (e) { return; }
+                this.loadEleves();
+            },
+
+            async adminDeleteEleve(id) {
+                if (!confirm(`Supprimer définitivement le compte de ${this.elevePseudo(id)} et tous ses points ?`)) return;
+                try { await this.adminCall('admin_supprimer_eleve', { p_eleve: id }); } catch (e) { return; }
+                this.loadEleves();
+            },
+
+            async changeAdminPassword() {
+                const input = document.getElementById('newAdminPassword');
+                const mdp = input.value;
+                if (mdp.length < 8) { alert('❌ 8 caractères minimum.'); return; }
+                try { await this.adminCall('admin_changer_mdp', { p_nouveau: mdp }); } catch (e) { return; }
+                input.value = '';
+                alert('✅ Mot de passe admin changé.');
             },
 
             setupTensesCheckboxes() {
@@ -4604,78 +5027,6 @@
                 if (this.selectedTenses.length === 0) {
                     this.selectedTenses = ['présent'];
                     this.setupTensesCheckboxes();
-                }
-            },
-
-            login() {
-                const input = document.getElementById('usernameInput');
-                const username = input.value.trim();
-                if (!username) {
-                    alert('Entre un pseudo!');
-                    return;
-                }
-                this.username = username;
-                storage.setUser(username);
-                this.loadUserData();
-                this.showScreen('home');
-            },
-
-            loadUserData() {
-                this.totalPoints = storage.getPoints(this.username);
-                this.sessionPoints = storage.getSession(this.username);
-                this.credits = storage.getCredits(this.username);
-                this.updateUI();
-            },
-
-            logout() {
-                this.pendingConfirmAction = () => this.doLogout();
-                document.getElementById('confirmTitle').textContent = 'Déconnexion?';
-                document.getElementById('confirmMessage').textContent = 'Tu quitteras ta session.';
-                document.getElementById('confirmModal').classList.add('active');
-            },
-
-            doLogout() {
-                storage.setUser(null);
-                this.username = null;
-                document.getElementById('usernameInput').value = '';
-                document.getElementById('adminPassword').value = '';
-                document.getElementById('adminContent').style.display = 'none';
-                document.getElementById('adminPanel').classList.remove('active');
-                this.showScreen('login');
-                this.refreshUsersList();
-            },
-
-            refreshUsersList() {
-                const list = document.getElementById('usersList');
-                const users = storage.getUsers();
-                list.innerHTML = users.length > 0 ? users.map(u => `<button class="btn-primary btn-full" style="margin-bottom: 0.25rem;" onclick="app.loginAs('${u}')">${u}</button>`).join('') : '<p style="color: #94a3b8;">Aucun utilisateur précédent</p>';
-            },
-
-            loginAs(user) {
-                this.username = user;
-                storage.setUser(user);
-                this.loadUserData();
-                this.showScreen('home');
-            },
-
-            showAdminPanel() {
-                document.getElementById('adminPanel').classList.add('active');
-            },
-
-            closeAdminPanel() {
-                document.getElementById('adminPanel').classList.remove('active');
-                document.getElementById('adminPassword').value = '';
-                document.getElementById('adminContent').style.display = 'none';
-            },
-
-            unlockAdmin() {
-                const pwd = document.getElementById('adminPassword').value;
-                if (pwd === ADMIN_PASSWORD) {
-                    document.getElementById('adminContent').style.display = 'block';
-                    this.loadQCMQuestions();
-                    document.getElementById('arcadePrice').value = this.arcadePrice;
-                } else {
-                    alert('Mauvais mot de passe!');
                 }
             },
 
@@ -4765,7 +5116,7 @@
                 this.currentEditingQuestion = null;
             },
 
-            saveEditedQuestion() {
+            async saveEditedQuestion() {
                 if (!this.currentEditingQuestion) return;
 
                 const { key, verb, tense, pronoun } = this.currentEditingQuestion;
@@ -4782,31 +5133,50 @@
                     return;
                 }
 
-                // Sauvegarder les options QCM
-                this.qcmData[key] = options;
-                storage.setQCM(this.qcmData);
-
-                // Modifier la réponse "Remplir les phrases" en mémoire
                 const fillBlanksAnswer = document.getElementById('fillBlanksAnswer').value.trim();
+                const newQCM = Object.assign({}, this.qcmData, { [key]: options });
+                const newAnswers = Object.assign({}, this.answerOverrides);
+                if (fillBlanksAnswer) newAnswers[key] = fillBlanksAnswer;
+
+                // Enregistrer en ligne : visible par tous les élèves
+                try {
+                    await storage.setQCM(newQCM);
+                    if (fillBlanksAnswer && fillBlanksAnswer !== this.getCorrectAnswer(verb, tense, pronoun)) {
+                        await this.adminSave('reponses', newAnswers);
+                    }
+                } catch (e) {
+                    alert('❌ Non sauvegardé : ' + msgErreur(e));
+                    return;
+                }
+                this.qcmData = newQCM;
                 if (fillBlanksAnswer) {
+                    if (!(key in this.defaultAnswers)) this.defaultAnswers[key] = this.verbsDB[verb][tense][pronoun];
                     this.verbsDB[verb][tense][pronoun] = fillBlanksAnswer;
+                    this.answerOverrides = newAnswers;
                 }
 
-                alert(`✅ ${key} sauvegardée!`);
+                alert(`✅ ${key} sauvegardée pour tout le monde !`);
                 this.closeEditQuestion();
                 this.loadQCMQuestions();
             },
 
-            saveArcadePrice() {
+            async saveArcadePrice() {
                 const price = parseInt(document.getElementById('arcadePrice').value);
                 if (price < 0 || price > 5) {
                     alert('❌ Le prix doit être entre 0 et 5!');
                     return;
                 }
+                try {
+                    await storage.setArcadePrice(price);
+                } catch (e) {
+                    alert('❌ Non sauvegardé : ' + msgErreur(e));
+                    document.getElementById('arcadePrice').value = this.arcadePrice;
+                    return;
+                }
                 this.arcadePrice = price;
-                storage.setArcadePrice(price);
                 document.getElementById('arcadePriceDisplay').textContent = price;
-                alert(`✅ Prix des arcades: ${price} crédits!`);
+                this.updateUI();
+                alert(`✅ Prix des arcades: ${price} crédits (pour tout le monde)!`);
             },
 
             exportQCM() {
@@ -4836,10 +5206,11 @@
                     try {
                         const data = JSON.parse(e.target.result);
                         if (data.qcmData && typeof data.qcmData === 'object') {
-                            this.qcmData = data.qcmData;
-                            storage.setQCM(this.qcmData);
-                            alert(`✅ QCM importé! (${Object.keys(data.qcmData).length} modifications restorées)`);
-                            this.loadQCMQuestions();
+                            storage.setQCM(data.qcmData).then(() => {
+                                this.qcmData = data.qcmData;
+                                alert(`✅ QCM importé pour tout le monde! (${Object.keys(data.qcmData).length} modifications restorées)`);
+                                this.loadQCMQuestions();
+                            }).catch(err => alert('❌ Non sauvegardé : ' + msgErreur(err)));
                         } else {
                             alert('❌ Fichier invalide!');
                         }
@@ -5296,7 +5667,7 @@
             getQCMOptions(verb, tense, pronoun) {
                 const key = `${verb}-${tense}-${pronoun}`;
                 if (this.qcmData[key]) {
-                    return this.qcmData[key];
+                    return [...this.qcmData[key]].sort(() => Math.random() - 0.5);
                 }
                 
                 const options = [this.verbsDB[verb][tense][pronoun]];
