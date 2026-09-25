@@ -1284,6 +1284,572 @@
             }
         };
 
+        // QCM par défaut : 4 propositions différentes par question (bonne réponse + 3 pièges :
+        // homophones, mauvaises terminaisons, mauvais auxiliaire, confusion futur/conditionnel…).
+        // Les modifications de l'admin (en ligne) remplacent ces valeurs question par question.
+        const DEFAULT_QCM = {
+            "aller-présent-je": ["vais", "vait", "vas", "vont"],
+            "aller-présent-tu": ["vas", "vat", "vont", "va"],
+            "aller-présent-il": ["va", "vat", "allons", "vas"],
+            "aller-présent-elle": ["va", "vat", "allez", "vas"],
+            "aller-présent-nous": ["allons", "allont", "vas", "va"],
+            "aller-présent-vous": ["allez", "allé", "va", "aller"],
+            "aller-présent-ils": ["vont", "allent", "vais", "vons"],
+            "aller-présent-elles": ["vont", "vons", "vais", "allent"],
+            "aller-imparfait-je": ["allais", "allait", "allions", "allé"],
+            "aller-imparfait-tu": ["allais", "allait", "allé", "allaient"],
+            "aller-imparfait-il": ["allait", "allais", "alliez", "allai"],
+            "aller-imparfait-elle": ["allait", "allais", "allaient", "allai"],
+            "aller-imparfait-nous": ["allions", "allons", "allait", "alliont"],
+            "aller-imparfait-vous": ["alliez", "allié", "allions", "alliés"],
+            "aller-imparfait-ils": ["allaient", "allait", "allions", "allais"],
+            "aller-imparfait-elles": ["allaient", "allais", "alliez", "allait"],
+            "aller-futur-je": ["irai", "allerai", "irez", "iré"],
+            "aller-futur-tu": ["iras", "alleras", "ira", "irons"],
+            "aller-futur-il": ["ira", "irat", "iront", "irait"],
+            "aller-futur-elle": ["ira", "irat", "iront", "allera"],
+            "aller-futur-nous": ["irons", "irions", "iront", "allerons"],
+            "aller-futur-vous": ["irez", "iriez", "irons", "allerez"],
+            "aller-futur-ils": ["iront", "iraient", "ira", "irons"],
+            "aller-futur-elles": ["iront", "iraient", "irons", "alleront"],
+            "aller-passé-je": ["suis allé", "ai allé", "est allé", "es allé"],
+            "aller-passé-tu": ["es allé", "es allait", "sont allés", "est allé"],
+            "aller-passé-il": ["est allé", "est allait", "sommes allés", "est aller"],
+            "aller-passé-elle": ["est allée", "est allait", "es allé", "est allés"],
+            "aller-passé-nous": ["sommes allés", "somme allés", "es allé", "sommes aller"],
+            "aller-passé-vous": ["êtes allés", "êtes allait", "sont allés", "êtes aller"],
+            "aller-passé-ils": ["sont allés", "sont allé", "est allé", "ont allés"],
+            "aller-passé-elles": ["sont allées", "sont allait", "sont allés", "ont allées"],
+            "aller-simple-je": ["allai", "allait", "alla", "allais"],
+            "aller-simple-tu": ["allas", "allat", "alla", "allèrent"],
+            "aller-simple-il": ["alla", "allas", "allâtes", "allat"],
+            "aller-simple-elle": ["alla", "allas", "allèrent", "allat"],
+            "aller-simple-nous": ["allâmes", "allâmmes", "allèrent", "allames"],
+            "aller-simple-vous": ["allâtes", "allates", "alla", "allârent"],
+            "aller-simple-ils": ["allèrent", "allérent", "allâtes", "allère"],
+            "aller-simple-elles": ["allèrent", "allérent", "allâtes", "allère"],
+            "avoir-présent-je": ["ai", "é", "ont", "ais"],
+            "avoir-présent-tu": ["as", "a", "ont", "at"],
+            "avoir-présent-il": ["a", "as", "avons", "à"],
+            "avoir-présent-elle": ["a", "as", "à", "ont"],
+            "avoir-présent-nous": ["avons", "avont", "avez", "ont"],
+            "avoir-présent-vous": ["avez", "avé", "avons", "aver"],
+            "avoir-présent-ils": ["ont", "on", "avons", "avent"],
+            "avoir-présent-elles": ["ont", "avent", "avez", "on"],
+            "avoir-imparfait-je": ["avais", "avait", "avé", "aviez"],
+            "avoir-imparfait-tu": ["avais", "avé", "aviez", "avait"],
+            "avoir-imparfait-il": ["avait", "avais", "avaient", "avai"],
+            "avoir-imparfait-elle": ["avait", "avais", "avai", "avions"],
+            "avoir-imparfait-nous": ["avions", "aviont", "aviez", "avons"],
+            "avoir-imparfait-vous": ["aviez", "aviés", "avaient", "avié"],
+            "avoir-imparfait-ils": ["avaient", "avais", "avait", "avions"],
+            "avoir-imparfait-elles": ["avaient", "avais", "avait", "avions"],
+            "avoir-futur-je": ["aurai", "aurais", "aura", "avoirai"],
+            "avoir-futur-tu": ["auras", "aurais", "auront", "avoiras"],
+            "avoir-futur-il": ["aura", "auras", "auront", "aurat"],
+            "avoir-futur-elle": ["aura", "aurait", "auras", "auront"],
+            "avoir-futur-nous": ["aurons", "avoirons", "auront", "aurions"],
+            "avoir-futur-vous": ["aurez", "avoirez", "auras", "auriez"],
+            "avoir-futur-ils": ["auront", "avoiront", "aurons", "aurai"],
+            "avoir-futur-elles": ["auront", "auraient", "auras", "avoiront"],
+            "avoir-passé-je": ["ai eu", "est eu", "avons eu", "es eu"],
+            "avoir-passé-tu": ["as eu", "es eu", "avons eu", "as u"],
+            "avoir-passé-il": ["a eu", "a u", "as eu", "a eut"],
+            "avoir-passé-elle": ["a eu", "as eu", "ont eu", "à eu"],
+            "avoir-passé-nous": ["avons eu", "avons eut", "avez eu", "avons u"],
+            "avoir-passé-vous": ["avez eu", "avé eu", "ai eu", "êtes eu"],
+            "avoir-passé-ils": ["ont eu", "sont eu", "a eu", "ont u"],
+            "avoir-passé-elles": ["ont eu", "ont eut", "as eu", "on eu"],
+            "avoir-simple-je": ["eus", "eut", "eûtes", "eu"],
+            "avoir-simple-tu": ["eus", "eu", "eurent", "eut"],
+            "avoir-simple-il": ["eut", "eu", "eus", "eûtes"],
+            "avoir-simple-elle": ["eut", "eu", "eus", "eûtes"],
+            "avoir-simple-nous": ["eûmes", "eûmmes", "eus", "eumes"],
+            "avoir-simple-vous": ["eûtes", "eutes", "eut", "eûrent"],
+            "avoir-simple-ils": ["eurent", "eure", "eut", "eûrent"],
+            "avoir-simple-elles": ["eurent", "eure", "eûmes", "eûrent"],
+            "devoir-présent-je": ["dois", "doie", "devons", "doit"],
+            "devoir-présent-tu": ["dois", "doit", "devez", "devons"],
+            "devoir-présent-il": ["doit", "dois", "doie", "devez"],
+            "devoir-présent-elle": ["doit", "doie", "dois", "doivent"],
+            "devoir-présent-nous": ["devons", "doivons", "devez", "devont"],
+            "devoir-présent-vous": ["devez", "doivez", "dois", "devé"],
+            "devoir-présent-ils": ["doivent", "doive", "devons", "devent"],
+            "devoir-présent-elles": ["doivent", "doive", "dois", "devent"],
+            "devoir-imparfait-je": ["devais", "devé", "devait", "deviez"],
+            "devoir-imparfait-tu": ["devais", "devait", "devaient", "devé"],
+            "devoir-imparfait-il": ["devait", "devais", "deviez", "devai"],
+            "devoir-imparfait-elle": ["devait", "devai", "deviez", "devais"],
+            "devoir-imparfait-nous": ["devions", "devons", "devaient", "deviont"],
+            "devoir-imparfait-vous": ["deviez", "deviés", "devaient", "devié"],
+            "devoir-imparfait-ils": ["devaient", "devait", "devais", "deviez"],
+            "devoir-imparfait-elles": ["devaient", "devait", "devais", "devions"],
+            "devoir-futur-je": ["devrai", "devrais", "devra", "devoirai"],
+            "devoir-futur-tu": ["devras", "devrais", "devrai", "devra"],
+            "devoir-futur-il": ["devra", "devras", "devrai", "devoira"],
+            "devoir-futur-elle": ["devra", "devoira", "devrai", "devrait"],
+            "devoir-futur-nous": ["devrons", "devrions", "devras", "devront"],
+            "devoir-futur-vous": ["devrez", "devriez", "devras", "devré"],
+            "devoir-futur-ils": ["devront", "devrons", "devra", "devoiront"],
+            "devoir-futur-elles": ["devront", "devoiront", "devrons", "devrez"],
+            "devoir-passé-je": ["ai dû", "es dû", "ont dû", "ai dut"],
+            "devoir-passé-tu": ["as dû", "es dû", "ont dû", "as du"],
+            "devoir-passé-il": ["a dû", "à dû", "ont dû", "est dû"],
+            "devoir-passé-elle": ["a dû", "a du", "avez dû", "à dû"],
+            "devoir-passé-nous": ["avons dû", "avons du", "avez dû", "sommes dû"],
+            "devoir-passé-vous": ["avez dû", "avez dut", "ont dû", "êtes dû"],
+            "devoir-passé-ils": ["ont dû", "sont dû", "as dû", "ont du"],
+            "devoir-passé-elles": ["ont dû", "ont dut", "a dû", "sont dû"],
+            "devoir-simple-je": ["dus", "dut", "dûmes", "du"],
+            "devoir-simple-tu": ["dus", "dut", "durent", "du"],
+            "devoir-simple-il": ["dut", "du", "durent", "dus"],
+            "devoir-simple-elle": ["dut", "dus", "durent", "du"],
+            "devoir-simple-nous": ["dûmes", "dûmmes", "dus", "dumes"],
+            "devoir-simple-vous": ["dûtes", "dûrent", "durent", "dutes"],
+            "devoir-simple-ils": ["durent", "dure", "dut", "dûrent"],
+            "devoir-simple-elles": ["durent", "dûrent", "dut", "dure"],
+            "dire-présent-je": ["dis", "dit", "disent", "di"],
+            "dire-présent-tu": ["dis", "dit", "disent", "dites"],
+            "dire-présent-il": ["dit", "dis", "dise", "disent"],
+            "dire-présent-elle": ["dit", "dis", "disent", "dise"],
+            "dire-présent-nous": ["disons", "dions", "dis", "disont"],
+            "dire-présent-vous": ["dites", "disez", "dit", "dîtes"],
+            "dire-présent-ils": ["disent", "disse", "dis", "dient"],
+            "dire-présent-elles": ["disent", "disse", "dis", "dient"],
+            "dire-imparfait-je": ["disais", "disé", "disaient", "disait"],
+            "dire-imparfait-tu": ["disais", "disé", "disaient", "disait"],
+            "dire-imparfait-il": ["disait", "disai", "disais", "disiez"],
+            "dire-imparfait-elle": ["disait", "disai", "disaient", "disais"],
+            "dire-imparfait-nous": ["disions", "disons", "disaient", "disiont"],
+            "dire-imparfait-vous": ["disiez", "disié", "disaient", "disiés"],
+            "dire-imparfait-ils": ["disaient", "disait", "disiez", "disais"],
+            "dire-imparfait-elles": ["disaient", "disait", "disais", "disions"],
+            "dire-futur-je": ["dirai", "diré", "diras", "dirais"],
+            "dire-futur-tu": ["diras", "dirais", "direz", "dira"],
+            "dire-futur-il": ["dira", "dirait", "dirons", "diras"],
+            "dire-futur-elle": ["dira", "dirait", "direz", "dirat"],
+            "dire-futur-nous": ["dirons", "diront", "dirai", "dirions"],
+            "dire-futur-vous": ["direz", "diré", "diras", "diriez"],
+            "dire-futur-ils": ["diront", "diraient", "dirai", "dirons"],
+            "dire-futur-elles": ["diront", "diraient", "dira", "dirons"],
+            "dire-passé-je": ["ai dit", "es dit", "as dit", "ai dis"],
+            "dire-passé-tu": ["as dit", "es dit", "avez dit", "as di"],
+            "dire-passé-il": ["a dit", "as dit", "ont dit", "a di"],
+            "dire-passé-elle": ["a dit", "a dis", "avez dit", "à dit"],
+            "dire-passé-nous": ["avons dit", "avont dit", "a dit", "sommes dit"],
+            "dire-passé-vous": ["avez dit", "êtes dit", "as dit", "avez dis"],
+            "dire-passé-ils": ["ont dit", "ont di", "a dit", "on dit"],
+            "dire-passé-elles": ["ont dit", "on dit", "avons dit", "sont dit"],
+            "dire-simple-je": ["dis", "dit", "di", "dirent"],
+            "dire-simple-tu": ["dis", "dit", "dîmes", "di"],
+            "dire-simple-il": ["dit", "di", "dîtes", "dis"],
+            "dire-simple-elle": ["dit", "dis", "dîmes", "di"],
+            "dire-simple-nous": ["dîmes", "dimes", "dit", "dîmmes"],
+            "dire-simple-vous": ["dîtes", "dites", "dit", "dîrent"],
+            "dire-simple-ils": ["dirent", "dîrent", "dis", "dire"],
+            "dire-simple-elles": ["dirent", "dîrent", "dîtes", "dire"],
+            "faire-présent-je": ["fais", "fait", "faites", "fé"],
+            "faire-présent-tu": ["fais", "fait", "font", "faites"],
+            "faire-présent-il": ["fait", "fais", "font", "fai"],
+            "faire-présent-elle": ["fait", "fai", "fais", "faisons"],
+            "faire-présent-nous": ["faisons", "fesons", "faites", "faisont"],
+            "faire-présent-vous": ["faites", "faîtes", "fais", "faisez"],
+            "faire-présent-ils": ["font", "faisent", "fait", "fons"],
+            "faire-présent-elles": ["font", "faisent", "fait", "fons"],
+            "faire-imparfait-je": ["faisais", "faisé", "faisait", "faisions"],
+            "faire-imparfait-tu": ["faisais", "faisait", "faisions", "faisé"],
+            "faire-imparfait-il": ["faisait", "faisais", "faisai", "faisions"],
+            "faire-imparfait-elle": ["faisait", "faisai", "faisiez", "faisais"],
+            "faire-imparfait-nous": ["faisions", "faisiont", "faisait", "faisons"],
+            "faire-imparfait-vous": ["faisiez", "faisié", "faisaient", "faisiés"],
+            "faire-imparfait-ils": ["faisaient", "faisait", "faisais", "faisiez"],
+            "faire-imparfait-elles": ["faisaient", "faisais", "faisiez", "faisait"],
+            "faire-futur-je": ["ferai", "ferais", "ferons", "fairai"],
+            "faire-futur-tu": ["feras", "fera", "ferais", "feront"],
+            "faire-futur-il": ["fera", "ferat", "feront", "faira"],
+            "faire-futur-elle": ["fera", "ferat", "ferai", "faira"],
+            "faire-futur-nous": ["ferons", "ferions", "feront", "fera"],
+            "faire-futur-vous": ["ferez", "fairez", "feras", "feré"],
+            "faire-futur-ils": ["feront", "fairont", "fera", "ferons"],
+            "faire-futur-elles": ["feront", "fairont", "feras", "ferons"],
+            "faire-passé-je": ["ai fait", "ai fais", "avez fait", "ai fai"],
+            "faire-passé-tu": ["as fait", "as fais", "a fait", "es fait"],
+            "faire-passé-il": ["a fait", "as fait", "ai fait", "est fait"],
+            "faire-passé-elle": ["a fait", "a fais", "ont fait", "est fait"],
+            "faire-passé-nous": ["avons fait", "sommes fait", "avez fait", "avons fai"],
+            "faire-passé-vous": ["avez fait", "avé fait", "as fait", "êtes fait"],
+            "faire-passé-ils": ["ont fait", "sont fait", "a fait", "ont fais"],
+            "faire-passé-elles": ["ont fait", "on fait", "as fait", "sont fait"],
+            "faire-simple-je": ["fis", "fi", "fîtes", "fit"],
+            "faire-simple-tu": ["fis", "fit", "firent", "fi"],
+            "faire-simple-il": ["fit", "fi", "fîmes", "fis"],
+            "faire-simple-elle": ["fit", "fi", "fis", "firent"],
+            "faire-simple-nous": ["fîmes", "fimes", "fit", "fîmmes"],
+            "faire-simple-vous": ["fîtes", "fîrent", "fis", "fites"],
+            "faire-simple-ils": ["firent", "fire", "fis", "fîrent"],
+            "faire-simple-elles": ["firent", "fire", "fîtes", "fîrent"],
+            "finir-présent-je": ["finis", "finit", "fini", "finissez"],
+            "finir-présent-tu": ["finis", "finit", "finissent", "finissons"],
+            "finir-présent-il": ["finit", "fini", "finissent", "finis"],
+            "finir-présent-elle": ["finit", "fini", "finis", "finissez"],
+            "finir-présent-nous": ["finissons", "finons", "finissent", "finissont"],
+            "finir-présent-vous": ["finissez", "finissé", "finissons", "finez"],
+            "finir-présent-ils": ["finissent", "finise", "finis", "finent"],
+            "finir-présent-elles": ["finissent", "finent", "finissez", "finise"],
+            "finir-imparfait-je": ["finissais", "finissé", "finissiez", "finissait"],
+            "finir-imparfait-tu": ["finissais", "finissait", "finissé", "finissions"],
+            "finir-imparfait-il": ["finissait", "finissais", "finissaient", "finissai"],
+            "finir-imparfait-elle": ["finissait", "finissais", "finissaient", "finissai"],
+            "finir-imparfait-nous": ["finissions", "finissiont", "finissait", "finissons"],
+            "finir-imparfait-vous": ["finissiez", "finissié", "finissaient", "finissiés"],
+            "finir-imparfait-ils": ["finissaient", "finissais", "finissait", "finissiez"],
+            "finir-imparfait-elles": ["finissaient", "finissais", "finissait", "finissiez"],
+            "finir-futur-je": ["finirai", "finirais", "finiront", "finiré"],
+            "finir-futur-tu": ["finiras", "finirais", "finirez", "finira"],
+            "finir-futur-il": ["finira", "finiras", "finirait", "finirons"],
+            "finir-futur-elle": ["finira", "finirat", "finiront", "finirait"],
+            "finir-futur-nous": ["finirons", "finiront", "finirez", "finirions"],
+            "finir-futur-vous": ["finirez", "finiré", "finira", "finiriez"],
+            "finir-futur-ils": ["finiront", "finiraient", "finirai", "finirons"],
+            "finir-futur-elles": ["finiront", "finirons", "finira", "finiraient"],
+            "finir-passé-je": ["ai fini", "suis fini", "as fini", "ai finis"],
+            "finir-passé-tu": ["as fini", "as finis", "ont fini", "as finit"],
+            "finir-passé-il": ["a fini", "a finis", "ont fini", "a finit"],
+            "finir-passé-elle": ["a fini", "a finit", "ont fini", "a finis"],
+            "finir-passé-nous": ["avons fini", "avons finis", "as fini", "sommes fini"],
+            "finir-passé-vous": ["avez fini", "avez finit", "a fini", "avé fini"],
+            "finir-passé-ils": ["ont fini", "ont finis", "avons fini", "ont finit"],
+            "finir-passé-elles": ["ont fini", "on fini", "ai fini", "ont finis"],
+            "finir-simple-je": ["finis", "finit", "fini", "finirent"],
+            "finir-simple-tu": ["finis", "fini", "finîtes", "finit"],
+            "finir-simple-il": ["finit", "fini", "finîmes", "finis"],
+            "finir-simple-elle": ["finit", "fini", "finis", "finirent"],
+            "finir-simple-nous": ["finîmes", "finîmmes", "finit", "finimes"],
+            "finir-simple-vous": ["finîtes", "finites", "finîmes", "finîrent"],
+            "finir-simple-ils": ["finirent", "finîrent", "finîtes", "finire"],
+            "finir-simple-elles": ["finirent", "finîrent", "finîtes", "finire"],
+            "parler-présent-je": ["parle", "parles", "parlent", "parlez"],
+            "parler-présent-tu": ["parles", "parle", "parlent", "parlez"],
+            "parler-présent-il": ["parle", "parles", "parlent", "parlons"],
+            "parler-présent-elle": ["parle", "parlent", "parles", "parlons"],
+            "parler-présent-nous": ["parlons", "parlions", "parlent", "parlont"],
+            "parler-présent-vous": ["parlez", "parler", "parle", "parlé"],
+            "parler-présent-ils": ["parlent", "parles", "parlons", "parle"],
+            "parler-présent-elles": ["parlent", "parles", "parle", "parlons"],
+            "parler-imparfait-je": ["parlais", "parlé", "parliez", "parlait"],
+            "parler-imparfait-tu": ["parlais", "parlé", "parliez", "parlait"],
+            "parler-imparfait-il": ["parlait", "parlais", "parlaient", "parlai"],
+            "parler-imparfait-elle": ["parlait", "parlai", "parlais", "parlaient"],
+            "parler-imparfait-nous": ["parlions", "parlons", "parlait", "parliont"],
+            "parler-imparfait-vous": ["parliez", "parliés", "parlait", "parlié"],
+            "parler-imparfait-ils": ["parlaient", "parlait", "parlais", "parlions"],
+            "parler-imparfait-elles": ["parlaient", "parlais", "parlions", "parlait"],
+            "parler-futur-je": ["parlerai", "parleré", "parlerons", "parlerais"],
+            "parler-futur-tu": ["parleras", "parlera", "parlerai", "parlerais"],
+            "parler-futur-il": ["parlera", "parleras", "parlerait", "parleront"],
+            "parler-futur-elle": ["parlera", "parlerat", "parleront", "parlerait"],
+            "parler-futur-nous": ["parlerons", "parleront", "parlera", "parlerions"],
+            "parler-futur-vous": ["parlerez", "parleriez", "parleront", "parleré"],
+            "parler-futur-ils": ["parleront", "parlerons", "parleraient", "parlerai"],
+            "parler-futur-elles": ["parleront", "parleraient", "parlerons", "parlera"],
+            "parler-passé-je": ["ai parlé", "suis parlé", "avons parlé", "ai parler"],
+            "parler-passé-tu": ["as parlé", "a parlé", "as parlez", "avons parlé"],
+            "parler-passé-il": ["a parlé", "à parlé", "as parlé", "est parlé"],
+            "parler-passé-elle": ["a parlé", "est parlé", "ont parlé", "a parler"],
+            "parler-passé-nous": ["avons parlé", "avons parler", "a parlé", "avont parlé"],
+            "parler-passé-vous": ["avez parlé", "avé parlé", "as parlé", "avez parler"],
+            "parler-passé-ils": ["ont parlé", "sont parlé", "a parlé", "on parlé"],
+            "parler-passé-elles": ["ont parlé", "sont parlé", "as parlé", "ont parler"],
+            "parler-simple-je": ["parlai", "parlais", "parla", "parlait"],
+            "parler-simple-tu": ["parlas", "parla", "parlâtes", "parlat"],
+            "parler-simple-il": ["parla", "parlat", "parlas", "parlâmes"],
+            "parler-simple-elle": ["parla", "parlat", "parlas", "parlâmes"],
+            "parler-simple-nous": ["parlâmes", "parlames", "parlai", "parlâmmes"],
+            "parler-simple-vous": ["parlâtes", "parlârent", "parlai", "parlates"],
+            "parler-simple-ils": ["parlèrent", "parlère", "parlas", "parlérent"],
+            "parler-simple-elles": ["parlèrent", "parlérent", "parlâtes", "parlère"],
+            "pouvoir-présent-je": ["peux", "peut", "peus", "pouvons"],
+            "pouvoir-présent-tu": ["peux", "peus", "peut", "peuvent"],
+            "pouvoir-présent-il": ["peut", "peu", "peuvent", "peux"],
+            "pouvoir-présent-elle": ["peut", "peu", "peuvent", "peux"],
+            "pouvoir-présent-nous": ["pouvons", "pouvont", "peuvent", "peuvons"],
+            "pouvoir-présent-vous": ["pouvez", "pouvé", "peux", "peuvez"],
+            "pouvoir-présent-ils": ["peuvent", "peuve", "peut", "pouvent"],
+            "pouvoir-présent-elles": ["peuvent", "peuve", "peux", "pouvent"],
+            "pouvoir-imparfait-je": ["pouvais", "pouvé", "pouviez", "pouvait"],
+            "pouvoir-imparfait-tu": ["pouvais", "pouvé", "pouvaient", "pouvait"],
+            "pouvoir-imparfait-il": ["pouvait", "pouvai", "pouviez", "pouvais"],
+            "pouvoir-imparfait-elle": ["pouvait", "pouvai", "pouvaient", "pouvais"],
+            "pouvoir-imparfait-nous": ["pouvions", "pouviont", "pouvais", "pouvons"],
+            "pouvoir-imparfait-vous": ["pouviez", "pouviés", "pouvais", "pouvié"],
+            "pouvoir-imparfait-ils": ["pouvaient", "pouvais", "pouvait", "pouviez"],
+            "pouvoir-imparfait-elles": ["pouvaient", "pouvait", "pouvais", "pouviez"],
+            "pouvoir-futur-je": ["pourrai", "pourai", "pourront", "pourré"],
+            "pouvoir-futur-tu": ["pourras", "pouvras", "pourrons", "pourrais"],
+            "pouvoir-futur-il": ["pourra", "pourras", "pourrons", "poura"],
+            "pouvoir-futur-elle": ["pourra", "poura", "pourront", "pourras"],
+            "pouvoir-futur-nous": ["pourrons", "pourons", "pourront", "pourrions"],
+            "pouvoir-futur-vous": ["pourrez", "pourez", "pourra", "pourré"],
+            "pouvoir-futur-ils": ["pourront", "pourraient", "pourras", "pourrons"],
+            "pouvoir-futur-elles": ["pourront", "pouvront", "pourra", "pourrons"],
+            "pouvoir-passé-je": ["ai pu", "suis pu", "ont pu", "ai put"],
+            "pouvoir-passé-tu": ["as pu", "as put", "avons pu", "es pu"],
+            "pouvoir-passé-il": ["a pu", "est pu", "avez pu", "à pu"],
+            "pouvoir-passé-elle": ["a pu", "a pus", "avez pu", "as pu"],
+            "pouvoir-passé-nous": ["avons pu", "avons put", "as pu", "sommes pu"],
+            "pouvoir-passé-vous": ["avez pu", "avez put", "ont pu", "êtes pu"],
+            "pouvoir-passé-ils": ["ont pu", "ont put", "a pu", "sont pu"],
+            "pouvoir-passé-elles": ["ont pu", "sont pu", "ai pu", "ont pus"],
+            "pouvoir-simple-je": ["pus", "pu", "put", "purent"],
+            "pouvoir-simple-tu": ["pus", "put", "purent", "pu"],
+            "pouvoir-simple-il": ["put", "pus", "pu", "pûtes"],
+            "pouvoir-simple-elle": ["put", "pu", "pus", "pûmes"],
+            "pouvoir-simple-nous": ["pûmes", "pûmmes", "pûtes", "pumes"],
+            "pouvoir-simple-vous": ["pûtes", "pûrent", "pus", "putes"],
+            "pouvoir-simple-ils": ["purent", "pure", "pus", "pûrent"],
+            "pouvoir-simple-elles": ["purent", "pure", "put", "pûrent"],
+            "savoir-présent-je": ["sais", "sé", "savez", "sait"],
+            "savoir-présent-tu": ["sais", "sait", "savons", "savent"],
+            "savoir-présent-il": ["sait", "sais", "sé", "savent"],
+            "savoir-présent-elle": ["sait", "sé", "sais", "savent"],
+            "savoir-présent-nous": ["savons", "saions", "sais", "savont"],
+            "savoir-présent-vous": ["savez", "savé", "sait", "saver"],
+            "savoir-présent-ils": ["savent", "saivent", "savez", "sevent"],
+            "savoir-présent-elles": ["savent", "saivent", "sait", "sevent"],
+            "savoir-imparfait-je": ["savais", "savait", "savé", "saviez"],
+            "savoir-imparfait-tu": ["savais", "savait", "saviez", "savé"],
+            "savoir-imparfait-il": ["savait", "savai", "savais", "savions"],
+            "savoir-imparfait-elle": ["savait", "savai", "savaient", "savais"],
+            "savoir-imparfait-nous": ["savions", "savons", "saviez", "saviont"],
+            "savoir-imparfait-vous": ["saviez", "saviés", "savais", "savié"],
+            "savoir-imparfait-ils": ["savaient", "savait", "savais", "saviez"],
+            "savoir-imparfait-elles": ["savaient", "savais", "saviez", "savait"],
+            "savoir-futur-je": ["saurai", "saurais", "saurez", "savoirai"],
+            "savoir-futur-tu": ["sauras", "saurais", "sauront", "savoiras"],
+            "savoir-futur-il": ["saura", "saurat", "sauront", "saurait"],
+            "savoir-futur-elle": ["saura", "saurat", "saurez", "saurait"],
+            "savoir-futur-nous": ["saurons", "savoirons", "saura", "sauront"],
+            "savoir-futur-vous": ["saurez", "savoirez", "saurons", "sauré"],
+            "savoir-futur-ils": ["sauront", "savoiront", "saurez", "saurons"],
+            "savoir-futur-elles": ["sauront", "saurons", "saura", "sauraient"],
+            "savoir-passé-je": ["ai su", "suis su", "avez su", "es su"],
+            "savoir-passé-tu": ["as su", "as sut", "ont su", "es su"],
+            "savoir-passé-il": ["a su", "as su", "ont su", "est su"],
+            "savoir-passé-elle": ["a su", "a sus", "as su", "a sut"],
+            "savoir-passé-nous": ["avons su", "avons sus", "ai su", "avons sut"],
+            "savoir-passé-vous": ["avez su", "êtes su", "ont su", "avez sus"],
+            "savoir-passé-ils": ["ont su", "ont sus", "a su", "on su"],
+            "savoir-passé-elles": ["ont su", "ont sus", "a su", "sont su"],
+            "savoir-simple-je": ["sus", "su", "sûtes", "sut"],
+            "savoir-simple-tu": ["sus", "sut", "surent", "su"],
+            "savoir-simple-il": ["sut", "sus", "surent", "su"],
+            "savoir-simple-elle": ["sut", "su", "sus", "surent"],
+            "savoir-simple-nous": ["sûmes", "sumes", "sûtes", "sûmmes"],
+            "savoir-simple-vous": ["sûtes", "sûrent", "sûmes", "sutes"],
+            "savoir-simple-ils": ["surent", "sure", "sûmes", "sûrent"],
+            "savoir-simple-elles": ["surent", "sûrent", "sut", "sure"],
+            "suivre-présent-je": ["suis", "suit", "suivent", "suie"],
+            "suivre-présent-tu": ["suis", "suit", "suivent", "suivons"],
+            "suivre-présent-il": ["suit", "suis", "suie", "suivent"],
+            "suivre-présent-elle": ["suit", "suie", "suivons", "suis"],
+            "suivre-présent-nous": ["suivons", "suions", "suivent", "suivont"],
+            "suivre-présent-vous": ["suivez", "suiver", "suis", "suivé"],
+            "suivre-présent-ils": ["suivent", "suivrent", "suit", "suient"],
+            "suivre-présent-elles": ["suivent", "suivrent", "suis", "suient"],
+            "suivre-imparfait-je": ["suivais", "suivé", "suivaient", "suivait"],
+            "suivre-imparfait-tu": ["suivais", "suivait", "suivé", "suivaient"],
+            "suivre-imparfait-il": ["suivait", "suivai", "suivions", "suivais"],
+            "suivre-imparfait-elle": ["suivait", "suivais", "suivai", "suivaient"],
+            "suivre-imparfait-nous": ["suivions", "suivons", "suivait", "suiviont"],
+            "suivre-imparfait-vous": ["suiviez", "suiviés", "suivais", "suivié"],
+            "suivre-imparfait-ils": ["suivaient", "suivais", "suiviez", "suivait"],
+            "suivre-imparfait-elles": ["suivaient", "suivais", "suivait", "suivions"],
+            "suivre-futur-je": ["suivrai", "suivrais", "suivra", "suivré"],
+            "suivre-futur-tu": ["suivras", "suivra", "suivrons", "suivrais"],
+            "suivre-futur-il": ["suivra", "suivrat", "suivrez", "suivras"],
+            "suivre-futur-elle": ["suivra", "suivrait", "suivront", "suivrat"],
+            "suivre-futur-nous": ["suivrons", "suivront", "suivrions", "suivra"],
+            "suivre-futur-vous": ["suivrez", "suivriez", "suivront", "suivré"],
+            "suivre-futur-ils": ["suivront", "suivraient", "suivra", "suivrons"],
+            "suivre-futur-elles": ["suivront", "suivraient", "suivrons", "suivrai"],
+            "suivre-passé-je": ["ai suivi", "es suivi", "avons suivi", "est suivi"],
+            "suivre-passé-tu": ["as suivi", "es suivi", "avez suivi", "a suivi"],
+            "suivre-passé-il": ["a suivi", "a suivis", "ont suivi", "est suivi"],
+            "suivre-passé-elle": ["a suivi", "as suivi", "avons suivi", "est suivi"],
+            "suivre-passé-nous": ["avons suivi", "sommes suivi", "ont suivi", "avons suivis"],
+            "suivre-passé-vous": ["avez suivi", "avé suivi", "avons suivi", "avez suivit"],
+            "suivre-passé-ils": ["ont suivi", "sont suivi", "as suivi", "ont suivis"],
+            "suivre-passé-elles": ["ont suivi", "sont suivi", "a suivi", "ont suivis"],
+            "suivre-simple-je": ["suivis", "suivi", "suivit", "suivîtes"],
+            "suivre-simple-tu": ["suivis", "suivi", "suivîmes", "suivit"],
+            "suivre-simple-il": ["suivit", "suivis", "suivirent", "suivi"],
+            "suivre-simple-elle": ["suivit", "suivis", "suivîtes", "suivi"],
+            "suivre-simple-nous": ["suivîmes", "suivimes", "suivis", "suivîmmes"],
+            "suivre-simple-vous": ["suivîtes", "suivites", "suivîmes", "suivîrent"],
+            "suivre-simple-ils": ["suivirent", "suivire", "suivis", "suivîrent"],
+            "suivre-simple-elles": ["suivirent", "suivire", "suivîtes", "suivîrent"],
+            "venir-présent-je": ["viens", "vien", "viennent", "vient"],
+            "venir-présent-tu": ["viens", "vient", "venez", "viennent"],
+            "venir-présent-il": ["vient", "viens", "venons", "vien"],
+            "venir-présent-elle": ["vient", "vien", "viens", "venez"],
+            "venir-présent-nous": ["venons", "viennons", "viens", "venont"],
+            "venir-présent-vous": ["venez", "viennez", "viennent", "venné"],
+            "venir-présent-ils": ["viennent", "vienent", "viens", "venent"],
+            "venir-présent-elles": ["viennent", "venent", "venez", "vienent"],
+            "venir-imparfait-je": ["venais", "vené", "venaient", "venait"],
+            "venir-imparfait-tu": ["venais", "vené", "veniez", "venait"],
+            "venir-imparfait-il": ["venait", "venais", "venai", "veniez"],
+            "venir-imparfait-elle": ["venait", "venai", "veniez", "venais"],
+            "venir-imparfait-nous": ["venions", "venons", "veniez", "veniont"],
+            "venir-imparfait-vous": ["veniez", "veniés", "venaient", "venié"],
+            "venir-imparfait-ils": ["venaient", "venait", "venais", "veniez"],
+            "venir-imparfait-elles": ["venaient", "venais", "veniez", "venait"],
+            "venir-futur-je": ["viendrai", "viendrais", "viendrons", "viendré"],
+            "venir-futur-tu": ["viendras", "viendrais", "viendra", "veniras"],
+            "venir-futur-il": ["viendra", "viendrait", "viendrai", "venira"],
+            "venir-futur-elle": ["viendra", "viendrait", "viendrez", "venira"],
+            "venir-futur-nous": ["viendrons", "venirons", "viendrez", "viendront"],
+            "venir-futur-vous": ["viendrez", "viendriez", "viendront", "venirez"],
+            "venir-futur-ils": ["viendront", "viendraient", "viendrai", "viendrons"],
+            "venir-futur-elles": ["viendront", "veniront", "viendra", "viendrons"],
+            "venir-passé-je": ["suis venu", "sui venu", "sont venues", "ai venu"],
+            "venir-passé-tu": ["es venu", "as venu", "êtes venus", "est venu"],
+            "venir-passé-il": ["est venu", "est venue", "sont venues", "et venu"],
+            "venir-passé-elle": ["est venue", "est venus", "sommes venus", "et venue"],
+            "venir-passé-nous": ["sommes venus", "somme venus", "es venu", "avons venu"],
+            "venir-passé-vous": ["êtes venus", "êtez venus", "sont venues", "êtes venut"],
+            "venir-passé-ils": ["sont venus", "sont venue", "êtes venus", "sont venu"],
+            "venir-passé-elles": ["sont venues", "sont venue", "êtes venus", "son venues"],
+            "venir-simple-je": ["vins", "vint", "vîntes", "vin"],
+            "venir-simple-tu": ["vins", "vin", "vint", "vîntes"],
+            "venir-simple-il": ["vint", "vins", "vinrent", "vin"],
+            "venir-simple-elle": ["vint", "vin", "vins", "vinrent"],
+            "venir-simple-nous": ["vînmes", "vinmes", "vinrent", "vînent"],
+            "venir-simple-vous": ["vîntes", "vînrent", "vinrent", "vintes"],
+            "venir-simple-ils": ["vinrent", "vinre", "vint", "vînrent"],
+            "venir-simple-elles": ["vinrent", "vînrent", "vîntes", "vinre"],
+            "vouloir-présent-je": ["veux", "veut", "voulez", "veus"],
+            "vouloir-présent-tu": ["veux", "veus", "veulent", "veut"],
+            "vouloir-présent-il": ["veut", "veu", "voulez", "veux"],
+            "vouloir-présent-elle": ["veut", "veux", "veulent", "veu"],
+            "vouloir-présent-nous": ["voulons", "voulont", "veulent", "veulons"],
+            "vouloir-présent-vous": ["voulez", "veulez", "veut", "voulé"],
+            "vouloir-présent-ils": ["veulent", "veule", "veux", "voulent"],
+            "vouloir-présent-elles": ["veulent", "voulent", "veut", "veule"],
+            "vouloir-imparfait-je": ["voulais", "voulé", "voulait", "voulaient"],
+            "vouloir-imparfait-tu": ["voulais", "voulé", "voulions", "voulait"],
+            "vouloir-imparfait-il": ["voulait", "voulais", "voulai", "voulions"],
+            "vouloir-imparfait-elle": ["voulait", "voulais", "voulions", "voulai"],
+            "vouloir-imparfait-nous": ["voulions", "vouliont", "voulait", "voulons"],
+            "vouloir-imparfait-vous": ["vouliez", "voulié", "voulait", "vouliés"],
+            "vouloir-imparfait-ils": ["voulaient", "voulais", "voulait", "voulions"],
+            "vouloir-imparfait-elles": ["voulaient", "voulait", "vouliez", "voulais"],
+            "vouloir-futur-je": ["voudrai", "voudré", "voudra", "voudrais"],
+            "vouloir-futur-tu": ["voudras", "voudra", "voudrez", "voudrais"],
+            "vouloir-futur-il": ["voudra", "voudras", "voudront", "voulera"],
+            "vouloir-futur-elle": ["voudra", "voudrat", "voudrai", "voudrait"],
+            "vouloir-futur-nous": ["voudrons", "voudrions", "voudra", "voudront"],
+            "vouloir-futur-vous": ["voudrez", "voulerez", "voudrons", "voudré"],
+            "vouloir-futur-ils": ["voudront", "vouleront", "voudrons", "voudrez"],
+            "vouloir-futur-elles": ["voudront", "voudraient", "voudrons", "voudras"],
+            "vouloir-passé-je": ["ai voulu", "ai voulut", "avez voulu", "suis voulu"],
+            "vouloir-passé-tu": ["as voulu", "as voulut", "ai voulu", "a voulu"],
+            "vouloir-passé-il": ["a voulu", "a voulut", "avez voulu", "est voulu"],
+            "vouloir-passé-elle": ["a voulu", "a voulus", "ont voulu", "à voulu"],
+            "vouloir-passé-nous": ["avons voulu", "avons voulut", "a voulu", "avons voulus"],
+            "vouloir-passé-vous": ["avez voulu", "avé voulu", "ont voulu", "avez voulus"],
+            "vouloir-passé-ils": ["ont voulu", "on voulu", "a voulu", "ont voulut"],
+            "vouloir-passé-elles": ["ont voulu", "on voulu", "a voulu", "ont voulut"],
+            "vouloir-simple-je": ["voulus", "voulu", "voulûmes", "voulut"],
+            "vouloir-simple-tu": ["voulus", "voulut", "voulûtes", "voulu"],
+            "vouloir-simple-il": ["voulut", "voulus", "voulûmes", "voulu"],
+            "vouloir-simple-elle": ["voulut", "voulus", "voulurent", "voulu"],
+            "vouloir-simple-nous": ["voulûmes", "voulumes", "voulus", "voulûmmes"],
+            "vouloir-simple-vous": ["voulûtes", "voulûrent", "voulut", "voulutes"],
+            "vouloir-simple-ils": ["voulurent", "voulure", "voulus", "voulûrent"],
+            "vouloir-simple-elles": ["voulurent", "voulûrent", "voulut", "voulure"],
+            "écrire-présent-je": ["écris", "écrit", "écrivons", "écri"],
+            "écrire-présent-tu": ["écris", "écrit", "écrivent", "écrivons"],
+            "écrire-présent-il": ["écrit", "écris", "écrivez", "écri"],
+            "écrire-présent-elle": ["écrit", "écris", "écrivent", "écri"],
+            "écrire-présent-nous": ["écrivons", "écrisons", "écris", "écrivont"],
+            "écrire-présent-vous": ["écrivez", "écrivé", "écrivons", "écrisez"],
+            "écrire-présent-ils": ["écrivent", "écrisent", "écrivez", "écrient"],
+            "écrire-présent-elles": ["écrivent", "écrient", "écrivons", "écrisent"],
+            "écrire-imparfait-je": ["écrivais", "écrivait", "écrivions", "écrivé"],
+            "écrire-imparfait-tu": ["écrivais", "écrivait", "écrivé", "écriviez"],
+            "écrire-imparfait-il": ["écrivait", "écrivais", "écrivai", "écrivaient"],
+            "écrire-imparfait-elle": ["écrivait", "écrivai", "écrivais", "écrivions"],
+            "écrire-imparfait-nous": ["écrivions", "écriviont", "écriviez", "écrivons"],
+            "écrire-imparfait-vous": ["écriviez", "écrivié", "écrivais", "écriviés"],
+            "écrire-imparfait-ils": ["écrivaient", "écrivait", "écrivais", "écriviez"],
+            "écrire-imparfait-elles": ["écrivaient", "écrivais", "écriviez", "écrivait"],
+            "écrire-futur-je": ["écrirai", "écriré", "écrira", "écrirais"],
+            "écrire-futur-tu": ["écriras", "écrirais", "écrirons", "écrira"],
+            "écrire-futur-il": ["écrira", "écrirait", "écriras", "écrirai"],
+            "écrire-futur-elle": ["écrira", "écriras", "écriront", "écrirat"],
+            "écrire-futur-nous": ["écrirons", "écriront", "écririons", "écrira"],
+            "écrire-futur-vous": ["écrirez", "écriré", "écrirons", "écririez"],
+            "écrire-futur-ils": ["écriront", "écriraient", "écrirons", "écrira"],
+            "écrire-futur-elles": ["écriront", "écriraient", "écrira", "écrirons"],
+            "écrire-passé-je": ["ai écrit", "es écrit", "ont écrit", "est écrit"],
+            "écrire-passé-tu": ["as écrit", "es écrit", "avez écrit", "as écris"],
+            "écrire-passé-il": ["a écrit", "as écrit", "à écrit", "avez écrit"],
+            "écrire-passé-elle": ["a écrit", "a écris", "ont écrit", "est écrit"],
+            "écrire-passé-nous": ["avons écrit", "sommes écrit", "as écrit", "avons écrie"],
+            "écrire-passé-vous": ["avez écrit", "avez écrie", "avons écrit", "avez écris"],
+            "écrire-passé-ils": ["ont écrit", "sont écrit", "ai écrit", "on écrit"],
+            "écrire-passé-elles": ["ont écrit", "sont écrit", "a écrit", "on écrit"],
+            "écrire-simple-je": ["écrivis", "écrivit", "écrivirent", "écrivi"],
+            "écrire-simple-tu": ["écrivis", "écrivi", "écrivit", "écrivirent"],
+            "écrire-simple-il": ["écrivit", "écrivi", "écrivis", "écrivirent"],
+            "écrire-simple-elle": ["écrivit", "écrivi", "écrivîmes", "écrivis"],
+            "écrire-simple-nous": ["écrivîmes", "écrivimes", "écrivirent", "écrivîmmes"],
+            "écrire-simple-vous": ["écrivîtes", "écrivîrent", "écrivis", "écrivites"],
+            "écrire-simple-ils": ["écrivirent", "écrivîrent", "écrivîtes", "écrivire"],
+            "écrire-simple-elles": ["écrivirent", "écrivire", "écrivis", "écrivîrent"],
+            "être-présent-je": ["suis", "sui", "es", "est"],
+            "être-présent-tu": ["es", "ai", "est", "êtes"],
+            "être-présent-il": ["est", "es", "suis", "et"],
+            "être-présent-elle": ["est", "es", "et", "sont"],
+            "être-présent-nous": ["sommes", "sommmes", "est", "somme"],
+            "être-présent-vous": ["êtes", "êtez", "sont", "étez"],
+            "être-présent-ils": ["sont", "son", "êtes", "sons"],
+            "être-présent-elles": ["sont", "sons", "est", "son"],
+            "être-imparfait-je": ["étais", "été", "était", "étions"],
+            "être-imparfait-tu": ["étais", "été", "étaient", "était"],
+            "être-imparfait-il": ["était", "étais", "étiez", "étai"],
+            "être-imparfait-elle": ["était", "étai", "étions", "étais"],
+            "être-imparfait-nous": ["étions", "étiont", "étaient", "étons"],
+            "être-imparfait-vous": ["étiez", "étiés", "étions", "étié"],
+            "être-imparfait-ils": ["étaient", "était", "étiez", "étais"],
+            "être-imparfait-elles": ["étaient", "était", "étais", "étiez"],
+            "être-futur-je": ["serai", "serais", "seront", "seré"],
+            "être-futur-tu": ["seras", "serais", "serons", "sera"],
+            "être-futur-il": ["sera", "seras", "serat", "serons"],
+            "être-futur-elle": ["sera", "serait", "seront", "seras"],
+            "être-futur-nous": ["serons", "serions", "serez", "seront"],
+            "être-futur-vous": ["serez", "seriez", "serai", "seré"],
+            "être-futur-ils": ["seront", "seraient", "serons", "seras"],
+            "être-futur-elles": ["seront", "seraient", "sera", "serons"],
+            "être-passé-je": ["ai été", "es été", "ont été", "ai étais"],
+            "être-passé-tu": ["as été", "as étais", "avez été", "as êté"],
+            "être-passé-il": ["a été", "a étais", "avez été", "as été"],
+            "être-passé-elle": ["a été", "a étais", "avons été", "as été"],
+            "être-passé-nous": ["avons été", "avons étais", "ai été", "avons êté"],
+            "être-passé-vous": ["avez été", "avez étais", "as été", "êtes été"],
+            "être-passé-ils": ["ont été", "sont été", "as été", "ont êté"],
+            "être-passé-elles": ["ont été", "ont êté", "ai été", "ont étais"],
+            "être-simple-je": ["fus", "fut", "furent", "fu"],
+            "être-simple-tu": ["fus", "fu", "fûtes", "fut"],
+            "être-simple-il": ["fut", "fus", "fu", "fûtes"],
+            "être-simple-elle": ["fut", "fus", "fu", "furent"],
+            "être-simple-nous": ["fûmes", "fumes", "fut", "fûmmes"],
+            "être-simple-vous": ["fûtes", "fûrent", "fûmes", "futes"],
+            "être-simple-ils": ["furent", "fûrent", "fus", "fure"],
+            "être-simple-elles": ["furent", "fûrent", "fus", "fure"]
+        };
+
         const TENSES = ['présent', 'imparfait', 'futur', 'passé', 'simple'];
         const PRONOUNS = ['je', 'tu', 'il', 'elle', 'nous', 'vous', 'ils', 'elles'];
         const TENSE_LABELS = {
@@ -1328,3368 +1894,7 @@
             score: 0,
             gameMode: null,
             answered: false,
-            qcmData: {
-                "aller-présent-je": [
-                                "vais",
-                                "vas",
-                                "allais",
-                                "allait"
-                ],
-                "aller-présent-tu": [
-                                "vas",
-                                "vais",
-                                "allais",
-                                "allait"
-                ],
-                "aller-présent-il": [
-                                "va",
-                                "vais",
-                                "allait",
-                                "allais"
-                ],
-                "aller-présent-elle": [
-                                "va",
-                                "vais",
-                                "allait",
-                                "allais"
-                ],
-                "aller-présent-nous": [
-                                "allons",
-                                "vais",
-                                "allions",
-                                "allais"
-                ],
-                "aller-présent-vous": [
-                                "allez",
-                                "vais",
-                                "alliez",
-                                "allais"
-                ],
-                "aller-présent-ils": [
-                                "vont",
-                                "vais",
-                                "allaient",
-                                "allais"
-                ],
-                "aller-présent-elles": [
-                                "vont",
-                                "vais",
-                                "allaient",
-                                "allais"
-                ],
-                "aller-imparfait-je": [
-                                "allais",
-                                "allait",
-                                "vais",
-                                "vas"
-                ],
-                "aller-imparfait-tu": [
-                                "allais",
-                                "allait",
-                                "vas",
-                                "vais"
-                ],
-                "aller-imparfait-il": [
-                                "allait",
-                                "allais",
-                                "va",
-                                "vais"
-                ],
-                "aller-imparfait-elle": [
-                                "allait",
-                                "allais",
-                                "va",
-                                "vais"
-                ],
-                "aller-imparfait-nous": [
-                                "allions",
-                                "allais",
-                                "allons",
-                                "vais"
-                ],
-                "aller-imparfait-vous": [
-                                "alliez",
-                                "allais",
-                                "allez",
-                                "vais"
-                ],
-                "aller-imparfait-ils": [
-                                "allaient",
-                                "allais",
-                                "vont",
-                                "vais"
-                ],
-                "aller-imparfait-elles": [
-                                "allaient",
-                                "allais",
-                                "vont",
-                                "vais"
-                ],
-                "aller-futur-je": [
-                                "irai",
-                                "iras",
-                                "vais",
-                                "vas"
-                ],
-                "aller-futur-tu": [
-                                "iras",
-                                "irai",
-                                "vas",
-                                "vais"
-                ],
-                "aller-futur-il": [
-                                "ira",
-                                "irai",
-                                "va",
-                                "vais"
-                ],
-                "aller-futur-elle": [
-                                "ira",
-                                "irai",
-                                "va",
-                                "vais"
-                ],
-                "aller-futur-nous": [
-                                "irons",
-                                "irai",
-                                "allons",
-                                "vais"
-                ],
-                "aller-futur-vous": [
-                                "irez",
-                                "irai",
-                                "allez",
-                                "vais"
-                ],
-                "aller-futur-ils": [
-                                "iront",
-                                "irai",
-                                "vont",
-                                "vais"
-                ],
-                "aller-futur-elles": [
-                                "iront",
-                                "irai",
-                                "vont",
-                                "vais"
-                ],
-                "aller-passé-je": [
-                                "suis allé",
-                                "es allé",
-                                "vais",
-                                "vas"
-                ],
-                "aller-passé-tu": [
-                                "es allé",
-                                "suis allé",
-                                "vas",
-                                "vais"
-                ],
-                "aller-passé-il": [
-                                "est allé",
-                                "suis allé",
-                                "va",
-                                "vais"
-                ],
-                "aller-passé-elle": [
-                                "est allée",
-                                "suis allé",
-                                "va",
-                                "vais"
-                ],
-                "aller-passé-nous": [
-                                "sommes allés",
-                                "suis allé",
-                                "allons",
-                                "vais"
-                ],
-                "aller-passé-vous": [
-                                "êtes allés",
-                                "suis allé",
-                                "allez",
-                                "vais"
-                ],
-                "aller-passé-ils": [
-                                "sont allés",
-                                "suis allé",
-                                "vont",
-                                "vais"
-                ],
-                "aller-passé-elles": [
-                                "sont allées",
-                                "suis allé",
-                                "vont",
-                                "vais"
-                ],
-                "aller-simple-je": [
-                                "allai",
-                                "allas",
-                                "vais",
-                                "vas"
-                ],
-                "aller-simple-tu": [
-                                "allas",
-                                "allai",
-                                "vas",
-                                "vais"
-                ],
-                "aller-simple-il": [
-                                "alla",
-                                "allai",
-                                "va",
-                                "vais"
-                ],
-                "aller-simple-elle": [
-                                "alla",
-                                "allai",
-                                "va",
-                                "vais"
-                ],
-                "aller-simple-nous": [
-                                "allâmes",
-                                "allai",
-                                "allons",
-                                "vais"
-                ],
-                "aller-simple-vous": [
-                                "allâtes",
-                                "allai",
-                                "allez",
-                                "vais"
-                ],
-                "aller-simple-ils": [
-                                "allèrent",
-                                "allai",
-                                "vont",
-                                "vais"
-                ],
-                "aller-simple-elles": [
-                                "allèrent",
-                                "allai",
-                                "vont",
-                                "vais"
-                ],
-                "avoir-présent-je": [
-                                "ai",
-                                "as",
-                                "avais",
-                                "avait"
-                ],
-                "avoir-présent-tu": [
-                                "as",
-                                "ai",
-                                "avais",
-                                "avait"
-                ],
-                "avoir-présent-il": [
-                                "a",
-                                "ai",
-                                "avait",
-                                "avais"
-                ],
-                "avoir-présent-elle": [
-                                "a",
-                                "ai",
-                                "avait",
-                                "avais"
-                ],
-                "avoir-présent-nous": [
-                                "avons",
-                                "ai",
-                                "avions",
-                                "avais"
-                ],
-                "avoir-présent-vous": [
-                                "avez",
-                                "ai",
-                                "aviez",
-                                "avais"
-                ],
-                "avoir-présent-ils": [
-                                "ont",
-                                "ai",
-                                "avaient",
-                                "avais"
-                ],
-                "avoir-présent-elles": [
-                                "ont",
-                                "ai",
-                                "avaient",
-                                "avais"
-                ],
-                "avoir-imparfait-je": [
-                                "avais",
-                                "avait",
-                                "ai",
-                                "as"
-                ],
-                "avoir-imparfait-tu": [
-                                "avais",
-                                "avait",
-                                "as",
-                                "ai"
-                ],
-                "avoir-imparfait-il": [
-                                "avait",
-                                "avais",
-                                "a",
-                                "ai"
-                ],
-                "avoir-imparfait-elle": [
-                                "avait",
-                                "avais",
-                                "a",
-                                "ai"
-                ],
-                "avoir-imparfait-nous": [
-                                "avions",
-                                "avais",
-                                "avons",
-                                "ai"
-                ],
-                "avoir-imparfait-vous": [
-                                "aviez",
-                                "avais",
-                                "avez",
-                                "ai"
-                ],
-                "avoir-imparfait-ils": [
-                                "avaient",
-                                "avais",
-                                "ont",
-                                "ai"
-                ],
-                "avoir-imparfait-elles": [
-                                "avaient",
-                                "avais",
-                                "ont",
-                                "ai"
-                ],
-                "avoir-futur-je": [
-                                "aurai",
-                                "auras",
-                                "ai",
-                                "as"
-                ],
-                "avoir-futur-tu": [
-                                "auras",
-                                "aurai",
-                                "as",
-                                "ai"
-                ],
-                "avoir-futur-il": [
-                                "aura",
-                                "aurai",
-                                "a",
-                                "ai"
-                ],
-                "avoir-futur-elle": [
-                                "aura",
-                                "aurai",
-                                "a",
-                                "ai"
-                ],
-                "avoir-futur-nous": [
-                                "aurons",
-                                "aurai",
-                                "avons",
-                                "ai"
-                ],
-                "avoir-futur-vous": [
-                                "aurez",
-                                "aurai",
-                                "avez",
-                                "ai"
-                ],
-                "avoir-futur-ils": [
-                                "auront",
-                                "aurai",
-                                "ont",
-                                "ai"
-                ],
-                "avoir-futur-elles": [
-                                "auront",
-                                "aurai",
-                                "ont",
-                                "ai"
-                ],
-                "avoir-passé-je": [
-                                "ai eu",
-                                "as eu",
-                                "ai",
-                                "as"
-                ],
-                "avoir-passé-tu": [
-                                "as eu",
-                                "ai eu",
-                                "as",
-                                "ai"
-                ],
-                "avoir-passé-il": [
-                                "a eu",
-                                "ai eu",
-                                "a",
-                                "ai"
-                ],
-                "avoir-passé-elle": [
-                                "a eu",
-                                "ai eu",
-                                "a",
-                                "ai"
-                ],
-                "avoir-passé-nous": [
-                                "avons eu",
-                                "ai eu",
-                                "avons",
-                                "ai"
-                ],
-                "avoir-passé-vous": [
-                                "avez eu",
-                                "ai eu",
-                                "avez",
-                                "ai"
-                ],
-                "avoir-passé-ils": [
-                                "ont eu",
-                                "ai eu",
-                                "ont",
-                                "ai"
-                ],
-                "avoir-passé-elles": [
-                                "ont eu",
-                                "ai eu",
-                                "ont",
-                                "ai"
-                ],
-                "avoir-simple-je": [
-                                "eus",
-                                "eut",
-                                "ai",
-                                "as"
-                ],
-                "avoir-simple-tu": [
-                                "eus",
-                                "eut",
-                                "as",
-                                "ai"
-                ],
-                "avoir-simple-il": [
-                                "eut",
-                                "eus",
-                                "a",
-                                "ai"
-                ],
-                "avoir-simple-elle": [
-                                "eut",
-                                "eus",
-                                "a",
-                                "ai"
-                ],
-                "avoir-simple-nous": [
-                                "eûmes",
-                                "eus",
-                                "avons",
-                                "ai"
-                ],
-                "avoir-simple-vous": [
-                                "eûtes",
-                                "eus",
-                                "avez",
-                                "ai"
-                ],
-                "avoir-simple-ils": [
-                                "eurent",
-                                "eus",
-                                "ont",
-                                "ai"
-                ],
-                "avoir-simple-elles": [
-                                "eurent",
-                                "eus",
-                                "ont",
-                                "ai"
-                ],
-                "devoir-présent-je": [
-                                "dois",
-                                "doit",
-                                "devais",
-                                "devait"
-                ],
-                "devoir-présent-tu": [
-                                "dois",
-                                "doit",
-                                "devais",
-                                "devait"
-                ],
-                "devoir-présent-il": [
-                                "doit",
-                                "dois",
-                                "devait",
-                                "devais"
-                ],
-                "devoir-présent-elle": [
-                                "doit",
-                                "dois",
-                                "devait",
-                                "devais"
-                ],
-                "devoir-présent-nous": [
-                                "devons",
-                                "dois",
-                                "devions",
-                                "devais"
-                ],
-                "devoir-présent-vous": [
-                                "devez",
-                                "dois",
-                                "deviez",
-                                "devais"
-                ],
-                "devoir-présent-ils": [
-                                "doivent",
-                                "dois",
-                                "devaient",
-                                "devais"
-                ],
-                "devoir-présent-elles": [
-                                "doivent",
-                                "dois",
-                                "devaient",
-                                "devais"
-                ],
-                "devoir-imparfait-je": [
-                                "devais",
-                                "devait",
-                                "dois",
-                                "doit"
-                ],
-                "devoir-imparfait-tu": [
-                                "devais",
-                                "devait",
-                                "dois",
-                                "doit"
-                ],
-                "devoir-imparfait-il": [
-                                "devait",
-                                "devais",
-                                "doit",
-                                "dois"
-                ],
-                "devoir-imparfait-elle": [
-                                "devait",
-                                "devais",
-                                "doit",
-                                "dois"
-                ],
-                "devoir-imparfait-nous": [
-                                "devions",
-                                "devais",
-                                "devons",
-                                "dois"
-                ],
-                "devoir-imparfait-vous": [
-                                "deviez",
-                                "devais",
-                                "devez",
-                                "dois"
-                ],
-                "devoir-imparfait-ils": [
-                                "devaient",
-                                "devais",
-                                "doivent",
-                                "dois"
-                ],
-                "devoir-imparfait-elles": [
-                                "devaient",
-                                "devais",
-                                "doivent",
-                                "dois"
-                ],
-                "devoir-futur-je": [
-                                "devrai",
-                                "devras",
-                                "dois",
-                                "doit"
-                ],
-                "devoir-futur-tu": [
-                                "devras",
-                                "devrai",
-                                "dois",
-                                "doit"
-                ],
-                "devoir-futur-il": [
-                                "devra",
-                                "devrai",
-                                "doit",
-                                "dois"
-                ],
-                "devoir-futur-elle": [
-                                "devra",
-                                "devrai",
-                                "doit",
-                                "dois"
-                ],
-                "devoir-futur-nous": [
-                                "devrons",
-                                "devrai",
-                                "devons",
-                                "dois"
-                ],
-                "devoir-futur-vous": [
-                                "devrez",
-                                "devrai",
-                                "devez",
-                                "dois"
-                ],
-                "devoir-futur-ils": [
-                                "devront",
-                                "devrai",
-                                "doivent",
-                                "dois"
-                ],
-                "devoir-futur-elles": [
-                                "devront",
-                                "devrai",
-                                "doivent",
-                                "dois"
-                ],
-                "devoir-passé-je": [
-                                "ai dû",
-                                "as dû",
-                                "dois",
-                                "doit"
-                ],
-                "devoir-passé-tu": [
-                                "as dû",
-                                "ai dû",
-                                "dois",
-                                "doit"
-                ],
-                "devoir-passé-il": [
-                                "a dû",
-                                "ai dû",
-                                "doit",
-                                "dois"
-                ],
-                "devoir-passé-elle": [
-                                "a dû",
-                                "ai dû",
-                                "doit",
-                                "dois"
-                ],
-                "devoir-passé-nous": [
-                                "avons dû",
-                                "ai dû",
-                                "devons",
-                                "dois"
-                ],
-                "devoir-passé-vous": [
-                                "avez dû",
-                                "ai dû",
-                                "devez",
-                                "dois"
-                ],
-                "devoir-passé-ils": [
-                                "ont dû",
-                                "ai dû",
-                                "doivent",
-                                "dois"
-                ],
-                "devoir-passé-elles": [
-                                "ont dû",
-                                "ai dû",
-                                "doivent",
-                                "dois"
-                ],
-                "devoir-simple-je": [
-                                "dus",
-                                "dut",
-                                "dois",
-                                "doit"
-                ],
-                "devoir-simple-tu": [
-                                "dus",
-                                "dut",
-                                "dois",
-                                "doit"
-                ],
-                "devoir-simple-il": [
-                                "dut",
-                                "dus",
-                                "doit",
-                                "dois"
-                ],
-                "devoir-simple-elle": [
-                                "dut",
-                                "dus",
-                                "doit",
-                                "dois"
-                ],
-                "devoir-simple-nous": [
-                                "dûmes",
-                                "dus",
-                                "devons",
-                                "dois"
-                ],
-                "devoir-simple-vous": [
-                                "dûtes",
-                                "dus",
-                                "devez",
-                                "dois"
-                ],
-                "devoir-simple-ils": [
-                                "durent",
-                                "dus",
-                                "doivent",
-                                "dois"
-                ],
-                "devoir-simple-elles": [
-                                "durent",
-                                "dus",
-                                "doivent",
-                                "dois"
-                ],
-                "dire-présent-je": [
-                                "dis",
-                                "dit",
-                                "disais",
-                                "disait"
-                ],
-                "dire-présent-tu": [
-                                "dis",
-                                "dit",
-                                "disais",
-                                "disait"
-                ],
-                "dire-présent-il": [
-                                "dit",
-                                "dis",
-                                "disait",
-                                "disais"
-                ],
-                "dire-présent-elle": [
-                                "dit",
-                                "dis",
-                                "disait",
-                                "disais"
-                ],
-                "dire-présent-nous": [
-                                "disons",
-                                "dis",
-                                "disions",
-                                "disais"
-                ],
-                "dire-présent-vous": [
-                                "dites",
-                                "dis",
-                                "disiez",
-                                "disais"
-                ],
-                "dire-présent-ils": [
-                                "disent",
-                                "dis",
-                                "disaient",
-                                "disais"
-                ],
-                "dire-présent-elles": [
-                                "disent",
-                                "dis",
-                                "disaient",
-                                "disais"
-                ],
-                "dire-imparfait-je": [
-                                "disais",
-                                "disait",
-                                "dis",
-                                "dit"
-                ],
-                "dire-imparfait-tu": [
-                                "disais",
-                                "disait",
-                                "dis",
-                                "dit"
-                ],
-                "dire-imparfait-il": [
-                                "disait",
-                                "disais",
-                                "dit",
-                                "dis"
-                ],
-                "dire-imparfait-elle": [
-                                "disait",
-                                "disais",
-                                "dit",
-                                "dis"
-                ],
-                "dire-imparfait-nous": [
-                                "disions",
-                                "disais",
-                                "disons",
-                                "dis"
-                ],
-                "dire-imparfait-vous": [
-                                "disiez",
-                                "disais",
-                                "dites",
-                                "dis"
-                ],
-                "dire-imparfait-ils": [
-                                "disaient",
-                                "disais",
-                                "disent",
-                                "dis"
-                ],
-                "dire-imparfait-elles": [
-                                "disaient",
-                                "disais",
-                                "disent",
-                                "dis"
-                ],
-                "dire-futur-je": [
-                                "dirai",
-                                "diras",
-                                "dis",
-                                "dit"
-                ],
-                "dire-futur-tu": [
-                                "diras",
-                                "dirai",
-                                "dis",
-                                "dit"
-                ],
-                "dire-futur-il": [
-                                "dira",
-                                "dirai",
-                                "dit",
-                                "dis"
-                ],
-                "dire-futur-elle": [
-                                "dira",
-                                "dirai",
-                                "dit",
-                                "dis"
-                ],
-                "dire-futur-nous": [
-                                "dirons",
-                                "dirai",
-                                "disons",
-                                "dis"
-                ],
-                "dire-futur-vous": [
-                                "direz",
-                                "dirai",
-                                "dites",
-                                "dis"
-                ],
-                "dire-futur-ils": [
-                                "diront",
-                                "dirai",
-                                "disent",
-                                "dis"
-                ],
-                "dire-futur-elles": [
-                                "diront",
-                                "dirai",
-                                "disent",
-                                "dis"
-                ],
-                "dire-passé-je": [
-                                "ai dit",
-                                "as dit",
-                                "dis",
-                                "dit"
-                ],
-                "dire-passé-tu": [
-                                "as dit",
-                                "ai dit",
-                                "dis",
-                                "dit"
-                ],
-                "dire-passé-il": [
-                                "a dit",
-                                "ai dit",
-                                "dit",
-                                "dis"
-                ],
-                "dire-passé-elle": [
-                                "a dit",
-                                "ai dit",
-                                "dit",
-                                "dis"
-                ],
-                "dire-passé-nous": [
-                                "avons dit",
-                                "ai dit",
-                                "disons",
-                                "dis"
-                ],
-                "dire-passé-vous": [
-                                "avez dit",
-                                "ai dit",
-                                "dites",
-                                "dis"
-                ],
-                "dire-passé-ils": [
-                                "ont dit",
-                                "ai dit",
-                                "disent",
-                                "dis"
-                ],
-                "dire-passé-elles": [
-                                "ont dit",
-                                "ai dit",
-                                "disent",
-                                "dis"
-                ],
-                "dire-simple-je": [
-                                "dis",
-                                "dit",
-                                "disais",
-                                "disons"
-                ],
-                "dire-simple-tu": [
-                                "dis",
-                                "dit",
-                                "disais",
-                                "disons"
-                ],
-                "dire-simple-il": [
-                                "dit",
-                                "dis",
-                                "disait",
-                                "disons"
-                ],
-                "dire-simple-elle": [
-                                "dit",
-                                "dis",
-                                "disait",
-                                "disons"
-                ],
-                "dire-simple-nous": [
-                                "dîmes",
-                                "dis",
-                                "disons",
-                                "dit"
-                ],
-                "dire-simple-vous": [
-                                "dîtes",
-                                "dis",
-                                "dites",
-                                "dit"
-                ],
-                "dire-simple-ils": [
-                                "dirent",
-                                "dis",
-                                "disent",
-                                "dit"
-                ],
-                "dire-simple-elles": [
-                                "dirent",
-                                "dis",
-                                "disent",
-                                "dit"
-                ],
-                "faire-présent-je": [
-                                "fais",
-                                "fait",
-                                "faisais",
-                                "faisait"
-                ],
-                "faire-présent-tu": [
-                                "fais",
-                                "fait",
-                                "faisais",
-                                "faisait"
-                ],
-                "faire-présent-il": [
-                                "fait",
-                                "fais",
-                                "faisait",
-                                "faisais"
-                ],
-                "faire-présent-elle": [
-                                "fait",
-                                "fais",
-                                "faisait",
-                                "faisais"
-                ],
-                "faire-présent-nous": [
-                                "faisons",
-                                "fais",
-                                "faisions",
-                                "faisais"
-                ],
-                "faire-présent-vous": [
-                                "faites",
-                                "fais",
-                                "faisiez",
-                                "faisais"
-                ],
-                "faire-présent-ils": [
-                                "font",
-                                "fais",
-                                "faisaient",
-                                "faisais"
-                ],
-                "faire-présent-elles": [
-                                "font",
-                                "fais",
-                                "faisaient",
-                                "faisais"
-                ],
-                "faire-imparfait-je": [
-                                "faisais",
-                                "faisait",
-                                "fais",
-                                "fait"
-                ],
-                "faire-imparfait-tu": [
-                                "faisais",
-                                "faisait",
-                                "fais",
-                                "fait"
-                ],
-                "faire-imparfait-il": [
-                                "faisait",
-                                "faisais",
-                                "fait",
-                                "fais"
-                ],
-                "faire-imparfait-elle": [
-                                "faisait",
-                                "faisais",
-                                "fait",
-                                "fais"
-                ],
-                "faire-imparfait-nous": [
-                                "faisions",
-                                "faisais",
-                                "faisons",
-                                "fais"
-                ],
-                "faire-imparfait-vous": [
-                                "faisiez",
-                                "faisais",
-                                "faites",
-                                "fais"
-                ],
-                "faire-imparfait-ils": [
-                                "faisaient",
-                                "faisais",
-                                "font",
-                                "fais"
-                ],
-                "faire-imparfait-elles": [
-                                "faisaient",
-                                "faisais",
-                                "font",
-                                "fais"
-                ],
-                "faire-futur-je": [
-                                "ferai",
-                                "feras",
-                                "fais",
-                                "fait"
-                ],
-                "faire-futur-tu": [
-                                "feras",
-                                "ferai",
-                                "fais",
-                                "fait"
-                ],
-                "faire-futur-il": [
-                                "fera",
-                                "ferai",
-                                "fait",
-                                "fais"
-                ],
-                "faire-futur-elle": [
-                                "fera",
-                                "ferai",
-                                "fait",
-                                "fais"
-                ],
-                "faire-futur-nous": [
-                                "ferons",
-                                "ferai",
-                                "faisons",
-                                "fais"
-                ],
-                "faire-futur-vous": [
-                                "ferez",
-                                "ferai",
-                                "faites",
-                                "fais"
-                ],
-                "faire-futur-ils": [
-                                "feront",
-                                "ferai",
-                                "font",
-                                "fais"
-                ],
-                "faire-futur-elles": [
-                                "feront",
-                                "ferai",
-                                "font",
-                                "fais"
-                ],
-                "faire-passé-je": [
-                                "ai fait",
-                                "as fait",
-                                "fais",
-                                "fait"
-                ],
-                "faire-passé-tu": [
-                                "as fait",
-                                "ai fait",
-                                "fais",
-                                "fait"
-                ],
-                "faire-passé-il": [
-                                "a fait",
-                                "ai fait",
-                                "fait",
-                                "fais"
-                ],
-                "faire-passé-elle": [
-                                "a fait",
-                                "ai fait",
-                                "fait",
-                                "fais"
-                ],
-                "faire-passé-nous": [
-                                "avons fait",
-                                "ai fait",
-                                "faisons",
-                                "fais"
-                ],
-                "faire-passé-vous": [
-                                "avez fait",
-                                "ai fait",
-                                "faites",
-                                "fais"
-                ],
-                "faire-passé-ils": [
-                                "ont fait",
-                                "ai fait",
-                                "font",
-                                "fais"
-                ],
-                "faire-passé-elles": [
-                                "ont fait",
-                                "ai fait",
-                                "font",
-                                "fais"
-                ],
-                "faire-simple-je": [
-                                "fis",
-                                "fit",
-                                "fais",
-                                "fait"
-                ],
-                "faire-simple-tu": [
-                                "fis",
-                                "fit",
-                                "fais",
-                                "fait"
-                ],
-                "faire-simple-il": [
-                                "fit",
-                                "fis",
-                                "fait",
-                                "fais"
-                ],
-                "faire-simple-elle": [
-                                "fit",
-                                "fis",
-                                "fait",
-                                "fais"
-                ],
-                "faire-simple-nous": [
-                                "fîmes",
-                                "fis",
-                                "faisons",
-                                "fais"
-                ],
-                "faire-simple-vous": [
-                                "fîtes",
-                                "fis",
-                                "faites",
-                                "fais"
-                ],
-                "faire-simple-ils": [
-                                "firent",
-                                "fis",
-                                "font",
-                                "fais"
-                ],
-                "faire-simple-elles": [
-                                "firent",
-                                "fis",
-                                "font",
-                                "fais"
-                ],
-                "finir-présent-je": [
-                                "finis",
-                                "finit",
-                                "finissais",
-                                "finissait"
-                ],
-                "finir-présent-tu": [
-                                "finis",
-                                "finit",
-                                "finissais",
-                                "finissait"
-                ],
-                "finir-présent-il": [
-                                "finit",
-                                "finis",
-                                "finissait",
-                                "finissais"
-                ],
-                "finir-présent-elle": [
-                                "finit",
-                                "finis",
-                                "finissait",
-                                "finissais"
-                ],
-                "finir-présent-nous": [
-                                "finissons",
-                                "finis",
-                                "finissions",
-                                "finissais"
-                ],
-                "finir-présent-vous": [
-                                "finissez",
-                                "finis",
-                                "finissiez",
-                                "finissais"
-                ],
-                "finir-présent-ils": [
-                                "finissent",
-                                "finis",
-                                "finissaient",
-                                "finissais"
-                ],
-                "finir-présent-elles": [
-                                "finissent",
-                                "finis",
-                                "finissaient",
-                                "finissais"
-                ],
-                "finir-imparfait-je": [
-                                "finissais",
-                                "finissait",
-                                "finis",
-                                "finit"
-                ],
-                "finir-imparfait-tu": [
-                                "finissais",
-                                "finissait",
-                                "finis",
-                                "finit"
-                ],
-                "finir-imparfait-il": [
-                                "finissait",
-                                "finissais",
-                                "finit",
-                                "finis"
-                ],
-                "finir-imparfait-elle": [
-                                "finissait",
-                                "finissais",
-                                "finit",
-                                "finis"
-                ],
-                "finir-imparfait-nous": [
-                                "finissions",
-                                "finissais",
-                                "finissons",
-                                "finis"
-                ],
-                "finir-imparfait-vous": [
-                                "finissiez",
-                                "finissais",
-                                "finissez",
-                                "finis"
-                ],
-                "finir-imparfait-ils": [
-                                "finissaient",
-                                "finissais",
-                                "finissent",
-                                "finis"
-                ],
-                "finir-imparfait-elles": [
-                                "finissaient",
-                                "finissais",
-                                "finissent",
-                                "finis"
-                ],
-                "finir-futur-je": [
-                                "finirai",
-                                "finiras",
-                                "finis",
-                                "finit"
-                ],
-                "finir-futur-tu": [
-                                "finiras",
-                                "finirai",
-                                "finis",
-                                "finit"
-                ],
-                "finir-futur-il": [
-                                "finira",
-                                "finirai",
-                                "finit",
-                                "finis"
-                ],
-                "finir-futur-elle": [
-                                "finira",
-                                "finirai",
-                                "finit",
-                                "finis"
-                ],
-                "finir-futur-nous": [
-                                "finirons",
-                                "finirai",
-                                "finissons",
-                                "finis"
-                ],
-                "finir-futur-vous": [
-                                "finirez",
-                                "finirai",
-                                "finissez",
-                                "finis"
-                ],
-                "finir-futur-ils": [
-                                "finiront",
-                                "finirai",
-                                "finissent",
-                                "finis"
-                ],
-                "finir-futur-elles": [
-                                "finiront",
-                                "finirai",
-                                "finissent",
-                                "finis"
-                ],
-                "finir-passé-je": [
-                                "ai fini",
-                                "as fini",
-                                "finis",
-                                "finit"
-                ],
-                "finir-passé-tu": [
-                                "as fini",
-                                "ai fini",
-                                "finis",
-                                "finit"
-                ],
-                "finir-passé-il": [
-                                "a fini",
-                                "ai fini",
-                                "finit",
-                                "finis"
-                ],
-                "finir-passé-elle": [
-                                "a fini",
-                                "ai fini",
-                                "finit",
-                                "finis"
-                ],
-                "finir-passé-nous": [
-                                "avons fini",
-                                "ai fini",
-                                "finissons",
-                                "finis"
-                ],
-                "finir-passé-vous": [
-                                "avez fini",
-                                "ai fini",
-                                "finissez",
-                                "finis"
-                ],
-                "finir-passé-ils": [
-                                "ont fini",
-                                "ai fini",
-                                "finissent",
-                                "finis"
-                ],
-                "finir-passé-elles": [
-                                "ont fini",
-                                "ai fini",
-                                "finissent",
-                                "finis"
-                ],
-                "finir-simple-je": [
-                                "finis",
-                                "finit",
-                                "finissais",
-                                "finissons"
-                ],
-                "finir-simple-tu": [
-                                "finis",
-                                "finit",
-                                "finissais",
-                                "finissons"
-                ],
-                "finir-simple-il": [
-                                "finit",
-                                "finis",
-                                "finissait",
-                                "finissons"
-                ],
-                "finir-simple-elle": [
-                                "finit",
-                                "finis",
-                                "finissait",
-                                "finissons"
-                ],
-                "finir-simple-nous": [
-                                "finîmes",
-                                "finis",
-                                "finissons",
-                                "finit"
-                ],
-                "finir-simple-vous": [
-                                "finîtes",
-                                "finis",
-                                "finissez",
-                                "finit"
-                ],
-                "finir-simple-ils": [
-                                "finirent",
-                                "finis",
-                                "finissent",
-                                "finit"
-                ],
-                "finir-simple-elles": [
-                                "finirent",
-                                "finis",
-                                "finissent",
-                                "finit"
-                ],
-                "parler-présent-je": [
-                                "parle",
-                                "parles",
-                                "parlais",
-                                "parlait"
-                ],
-                "parler-présent-tu": [
-                                "parles",
-                                "parle",
-                                "parlais",
-                                "parlait"
-                ],
-                "parler-présent-il": [
-                                "parle",
-                                "parles",
-                                "parlait",
-                                "parlais"
-                ],
-                "parler-présent-elle": [
-                                "parle",
-                                "parles",
-                                "parlait",
-                                "parlais"
-                ],
-                "parler-présent-nous": [
-                                "parlons",
-                                "parle",
-                                "parlions",
-                                "parlais"
-                ],
-                "parler-présent-vous": [
-                                "parlez",
-                                "parle",
-                                "parliez",
-                                "parlais"
-                ],
-                "parler-présent-ils": [
-                                "parlent",
-                                "parle",
-                                "parlaient",
-                                "parlais"
-                ],
-                "parler-présent-elles": [
-                                "parlent",
-                                "parle",
-                                "parlaient",
-                                "parlais"
-                ],
-                "parler-imparfait-je": [
-                                "parlais",
-                                "parlait",
-                                "parle",
-                                "parles"
-                ],
-                "parler-imparfait-tu": [
-                                "parlais",
-                                "parlait",
-                                "parles",
-                                "parle"
-                ],
-                "parler-imparfait-il": [
-                                "parlait",
-                                "parlais",
-                                "parle",
-                                "parles"
-                ],
-                "parler-imparfait-elle": [
-                                "parlait",
-                                "parlais",
-                                "parle",
-                                "parles"
-                ],
-                "parler-imparfait-nous": [
-                                "parlions",
-                                "parlais",
-                                "parlons",
-                                "parle"
-                ],
-                "parler-imparfait-vous": [
-                                "parliez",
-                                "parlais",
-                                "parlez",
-                                "parle"
-                ],
-                "parler-imparfait-ils": [
-                                "parlaient",
-                                "parlais",
-                                "parlent",
-                                "parle"
-                ],
-                "parler-imparfait-elles": [
-                                "parlaient",
-                                "parlais",
-                                "parlent",
-                                "parle"
-                ],
-                "parler-futur-je": [
-                                "parlerai",
-                                "parleras",
-                                "parle",
-                                "parles"
-                ],
-                "parler-futur-tu": [
-                                "parleras",
-                                "parlerai",
-                                "parles",
-                                "parle"
-                ],
-                "parler-futur-il": [
-                                "parlera",
-                                "parlerai",
-                                "parle",
-                                "parles"
-                ],
-                "parler-futur-elle": [
-                                "parlera",
-                                "parlerai",
-                                "parle",
-                                "parles"
-                ],
-                "parler-futur-nous": [
-                                "parlerons",
-                                "parlerai",
-                                "parlons",
-                                "parle"
-                ],
-                "parler-futur-vous": [
-                                "parlerez",
-                                "parlerai",
-                                "parlez",
-                                "parle"
-                ],
-                "parler-futur-ils": [
-                                "parleront",
-                                "parlerai",
-                                "parlent",
-                                "parle"
-                ],
-                "parler-futur-elles": [
-                                "parleront",
-                                "parlerai",
-                                "parlent",
-                                "parle"
-                ],
-                "parler-passé-je": [
-                                "ai parlé",
-                                "as parlé",
-                                "parle",
-                                "parles"
-                ],
-                "parler-passé-tu": [
-                                "as parlé",
-                                "ai parlé",
-                                "parles",
-                                "parle"
-                ],
-                "parler-passé-il": [
-                                "a parlé",
-                                "ai parlé",
-                                "parle",
-                                "parles"
-                ],
-                "parler-passé-elle": [
-                                "a parlé",
-                                "ai parlé",
-                                "parle",
-                                "parles"
-                ],
-                "parler-passé-nous": [
-                                "avons parlé",
-                                "ai parlé",
-                                "parlons",
-                                "parle"
-                ],
-                "parler-passé-vous": [
-                                "avez parlé",
-                                "ai parlé",
-                                "parlez",
-                                "parle"
-                ],
-                "parler-passé-ils": [
-                                "ont parlé",
-                                "ai parlé",
-                                "parlent",
-                                "parle"
-                ],
-                "parler-passé-elles": [
-                                "ont parlé",
-                                "ai parlé",
-                                "parlent",
-                                "parle"
-                ],
-                "parler-simple-je": [
-                                "parlai",
-                                "parlas",
-                                "parle",
-                                "parles"
-                ],
-                "parler-simple-tu": [
-                                "parlas",
-                                "parlai",
-                                "parles",
-                                "parle"
-                ],
-                "parler-simple-il": [
-                                "parla",
-                                "parlai",
-                                "parle",
-                                "parles"
-                ],
-                "parler-simple-elle": [
-                                "parla",
-                                "parlai",
-                                "parle",
-                                "parles"
-                ],
-                "parler-simple-nous": [
-                                "parlâmes",
-                                "parlai",
-                                "parlons",
-                                "parle"
-                ],
-                "parler-simple-vous": [
-                                "parlâtes",
-                                "parlai",
-                                "parlez",
-                                "parle"
-                ],
-                "parler-simple-ils": [
-                                "parlèrent",
-                                "parlai",
-                                "parlent",
-                                "parle"
-                ],
-                "parler-simple-elles": [
-                                "parlèrent",
-                                "parlai",
-                                "parlent",
-                                "parle"
-                ],
-                "pouvoir-présent-je": [
-                                "peux",
-                                "peut",
-                                "pouvais",
-                                "pouvait"
-                ],
-                "pouvoir-présent-tu": [
-                                "peux",
-                                "peut",
-                                "pouvais",
-                                "pouvait"
-                ],
-                "pouvoir-présent-il": [
-                                "peut",
-                                "peux",
-                                "pouvait",
-                                "pouvais"
-                ],
-                "pouvoir-présent-elle": [
-                                "peut",
-                                "peux",
-                                "pouvait",
-                                "pouvais"
-                ],
-                "pouvoir-présent-nous": [
-                                "pouvons",
-                                "peux",
-                                "pouvions",
-                                "pouvais"
-                ],
-                "pouvoir-présent-vous": [
-                                "pouvez",
-                                "peux",
-                                "pouviez",
-                                "pouvais"
-                ],
-                "pouvoir-présent-ils": [
-                                "peuvent",
-                                "peux",
-                                "pouvaient",
-                                "pouvais"
-                ],
-                "pouvoir-présent-elles": [
-                                "peuvent",
-                                "peux",
-                                "pouvaient",
-                                "pouvais"
-                ],
-                "pouvoir-imparfait-je": [
-                                "pouvais",
-                                "pouvait",
-                                "peux",
-                                "peut"
-                ],
-                "pouvoir-imparfait-tu": [
-                                "pouvais",
-                                "pouvait",
-                                "peux",
-                                "peut"
-                ],
-                "pouvoir-imparfait-il": [
-                                "pouvait",
-                                "pouvais",
-                                "peut",
-                                "peux"
-                ],
-                "pouvoir-imparfait-elle": [
-                                "pouvait",
-                                "pouvais",
-                                "peut",
-                                "peux"
-                ],
-                "pouvoir-imparfait-nous": [
-                                "pouvions",
-                                "pouvais",
-                                "pouvons",
-                                "peux"
-                ],
-                "pouvoir-imparfait-vous": [
-                                "pouviez",
-                                "pouvais",
-                                "pouvez",
-                                "peux"
-                ],
-                "pouvoir-imparfait-ils": [
-                                "pouvaient",
-                                "pouvais",
-                                "peuvent",
-                                "peux"
-                ],
-                "pouvoir-imparfait-elles": [
-                                "pouvaient",
-                                "pouvais",
-                                "peuvent",
-                                "peux"
-                ],
-                "pouvoir-futur-je": [
-                                "pourrai",
-                                "pourras",
-                                "peux",
-                                "peut"
-                ],
-                "pouvoir-futur-tu": [
-                                "pourras",
-                                "pourrai",
-                                "peux",
-                                "peut"
-                ],
-                "pouvoir-futur-il": [
-                                "pourra",
-                                "pourrai",
-                                "peut",
-                                "peux"
-                ],
-                "pouvoir-futur-elle": [
-                                "pourra",
-                                "pourrai",
-                                "peut",
-                                "peux"
-                ],
-                "pouvoir-futur-nous": [
-                                "pourrons",
-                                "pourrai",
-                                "pouvons",
-                                "peux"
-                ],
-                "pouvoir-futur-vous": [
-                                "pourrez",
-                                "pourrai",
-                                "pouvez",
-                                "peux"
-                ],
-                "pouvoir-futur-ils": [
-                                "pourront",
-                                "pourrai",
-                                "peuvent",
-                                "peux"
-                ],
-                "pouvoir-futur-elles": [
-                                "pourront",
-                                "pourrai",
-                                "peuvent",
-                                "peux"
-                ],
-                "pouvoir-passé-je": [
-                                "ai pu",
-                                "as pu",
-                                "peux",
-                                "peut"
-                ],
-                "pouvoir-passé-tu": [
-                                "as pu",
-                                "ai pu",
-                                "peux",
-                                "peut"
-                ],
-                "pouvoir-passé-il": [
-                                "a pu",
-                                "ai pu",
-                                "peut",
-                                "peux"
-                ],
-                "pouvoir-passé-elle": [
-                                "a pu",
-                                "ai pu",
-                                "peut",
-                                "peux"
-                ],
-                "pouvoir-passé-nous": [
-                                "avons pu",
-                                "ai pu",
-                                "pouvons",
-                                "peux"
-                ],
-                "pouvoir-passé-vous": [
-                                "avez pu",
-                                "ai pu",
-                                "pouvez",
-                                "peux"
-                ],
-                "pouvoir-passé-ils": [
-                                "ont pu",
-                                "ai pu",
-                                "peuvent",
-                                "peux"
-                ],
-                "pouvoir-passé-elles": [
-                                "ont pu",
-                                "ai pu",
-                                "peuvent",
-                                "peux"
-                ],
-                "pouvoir-simple-je": [
-                                "pus",
-                                "put",
-                                "peux",
-                                "peut"
-                ],
-                "pouvoir-simple-tu": [
-                                "pus",
-                                "put",
-                                "peux",
-                                "peut"
-                ],
-                "pouvoir-simple-il": [
-                                "put",
-                                "pus",
-                                "peut",
-                                "peux"
-                ],
-                "pouvoir-simple-elle": [
-                                "put",
-                                "pus",
-                                "peut",
-                                "peux"
-                ],
-                "pouvoir-simple-nous": [
-                                "pûmes",
-                                "pus",
-                                "pouvons",
-                                "peux"
-                ],
-                "pouvoir-simple-vous": [
-                                "pûtes",
-                                "pus",
-                                "pouvez",
-                                "peux"
-                ],
-                "pouvoir-simple-ils": [
-                                "purent",
-                                "pus",
-                                "peuvent",
-                                "peux"
-                ],
-                "pouvoir-simple-elles": [
-                                "purent",
-                                "pus",
-                                "peuvent",
-                                "peux"
-                ],
-                "savoir-présent-je": [
-                                "sais",
-                                "sait",
-                                "savais",
-                                "savait"
-                ],
-                "savoir-présent-tu": [
-                                "sais",
-                                "sait",
-                                "savais",
-                                "savait"
-                ],
-                "savoir-présent-il": [
-                                "sait",
-                                "sais",
-                                "savait",
-                                "savais"
-                ],
-                "savoir-présent-elle": [
-                                "sait",
-                                "sais",
-                                "savait",
-                                "savais"
-                ],
-                "savoir-présent-nous": [
-                                "savons",
-                                "sais",
-                                "savions",
-                                "savais"
-                ],
-                "savoir-présent-vous": [
-                                "savez",
-                                "sais",
-                                "saviez",
-                                "savais"
-                ],
-                "savoir-présent-ils": [
-                                "savent",
-                                "sais",
-                                "savaient",
-                                "savais"
-                ],
-                "savoir-présent-elles": [
-                                "savent",
-                                "sais",
-                                "savaient",
-                                "savais"
-                ],
-                "savoir-imparfait-je": [
-                                "savais",
-                                "savait",
-                                "sais",
-                                "sait"
-                ],
-                "savoir-imparfait-tu": [
-                                "savais",
-                                "savait",
-                                "sais",
-                                "sait"
-                ],
-                "savoir-imparfait-il": [
-                                "savait",
-                                "savais",
-                                "sait",
-                                "sais"
-                ],
-                "savoir-imparfait-elle": [
-                                "savait",
-                                "savais",
-                                "sait",
-                                "sais"
-                ],
-                "savoir-imparfait-nous": [
-                                "savions",
-                                "savais",
-                                "savons",
-                                "sais"
-                ],
-                "savoir-imparfait-vous": [
-                                "saviez",
-                                "savais",
-                                "savez",
-                                "sais"
-                ],
-                "savoir-imparfait-ils": [
-                                "savaient",
-                                "savais",
-                                "savent",
-                                "sais"
-                ],
-                "savoir-imparfait-elles": [
-                                "savaient",
-                                "savais",
-                                "savent",
-                                "sais"
-                ],
-                "savoir-futur-je": [
-                                "saurai",
-                                "sauras",
-                                "sais",
-                                "sait"
-                ],
-                "savoir-futur-tu": [
-                                "sauras",
-                                "saurai",
-                                "sais",
-                                "sait"
-                ],
-                "savoir-futur-il": [
-                                "saura",
-                                "saurai",
-                                "sait",
-                                "sais"
-                ],
-                "savoir-futur-elle": [
-                                "saura",
-                                "saurai",
-                                "sait",
-                                "sais"
-                ],
-                "savoir-futur-nous": [
-                                "saurons",
-                                "saurai",
-                                "savons",
-                                "sais"
-                ],
-                "savoir-futur-vous": [
-                                "saurez",
-                                "saurai",
-                                "savez",
-                                "sais"
-                ],
-                "savoir-futur-ils": [
-                                "sauront",
-                                "saurai",
-                                "savent",
-                                "sais"
-                ],
-                "savoir-futur-elles": [
-                                "sauront",
-                                "saurai",
-                                "savent",
-                                "sais"
-                ],
-                "savoir-passé-je": [
-                                "ai su",
-                                "as su",
-                                "sais",
-                                "sait"
-                ],
-                "savoir-passé-tu": [
-                                "as su",
-                                "ai su",
-                                "sais",
-                                "sait"
-                ],
-                "savoir-passé-il": [
-                                "a su",
-                                "ai su",
-                                "sait",
-                                "sais"
-                ],
-                "savoir-passé-elle": [
-                                "a su",
-                                "ai su",
-                                "sait",
-                                "sais"
-                ],
-                "savoir-passé-nous": [
-                                "avons su",
-                                "ai su",
-                                "savons",
-                                "sais"
-                ],
-                "savoir-passé-vous": [
-                                "avez su",
-                                "ai su",
-                                "savez",
-                                "sais"
-                ],
-                "savoir-passé-ils": [
-                                "ont su",
-                                "ai su",
-                                "savent",
-                                "sais"
-                ],
-                "savoir-passé-elles": [
-                                "ont su",
-                                "ai su",
-                                "savent",
-                                "sais"
-                ],
-                "savoir-simple-je": [
-                                "sus",
-                                "sut",
-                                "sais",
-                                "sait"
-                ],
-                "savoir-simple-tu": [
-                                "sus",
-                                "sut",
-                                "sais",
-                                "sait"
-                ],
-                "savoir-simple-il": [
-                                "sut",
-                                "sus",
-                                "sait",
-                                "sais"
-                ],
-                "savoir-simple-elle": [
-                                "sut",
-                                "sus",
-                                "sait",
-                                "sais"
-                ],
-                "savoir-simple-nous": [
-                                "sûmes",
-                                "sus",
-                                "savons",
-                                "sais"
-                ],
-                "savoir-simple-vous": [
-                                "sûtes",
-                                "sus",
-                                "savez",
-                                "sais"
-                ],
-                "savoir-simple-ils": [
-                                "surent",
-                                "sus",
-                                "savent",
-                                "sais"
-                ],
-                "savoir-simple-elles": [
-                                "surent",
-                                "sus",
-                                "savent",
-                                "sais"
-                ],
-                "suivre-présent-je": [
-                                "suis",
-                                "suit",
-                                "suivais",
-                                "suivait"
-                ],
-                "suivre-présent-tu": [
-                                "suis",
-                                "suit",
-                                "suivais",
-                                "suivait"
-                ],
-                "suivre-présent-il": [
-                                "suit",
-                                "suis",
-                                "suivait",
-                                "suivais"
-                ],
-                "suivre-présent-elle": [
-                                "suit",
-                                "suis",
-                                "suivait",
-                                "suivais"
-                ],
-                "suivre-présent-nous": [
-                                "suivons",
-                                "suis",
-                                "suivions",
-                                "suivais"
-                ],
-                "suivre-présent-vous": [
-                                "suivez",
-                                "suis",
-                                "suiviez",
-                                "suivais"
-                ],
-                "suivre-présent-ils": [
-                                "suivent",
-                                "suis",
-                                "suivaient",
-                                "suivais"
-                ],
-                "suivre-présent-elles": [
-                                "suivent",
-                                "suis",
-                                "suivaient",
-                                "suivais"
-                ],
-                "suivre-imparfait-je": [
-                                "suivais",
-                                "suivait",
-                                "suis",
-                                "suit"
-                ],
-                "suivre-imparfait-tu": [
-                                "suivais",
-                                "suivait",
-                                "suis",
-                                "suit"
-                ],
-                "suivre-imparfait-il": [
-                                "suivait",
-                                "suivais",
-                                "suit",
-                                "suis"
-                ],
-                "suivre-imparfait-elle": [
-                                "suivait",
-                                "suivais",
-                                "suit",
-                                "suis"
-                ],
-                "suivre-imparfait-nous": [
-                                "suivions",
-                                "suivais",
-                                "suivons",
-                                "suis"
-                ],
-                "suivre-imparfait-vous": [
-                                "suiviez",
-                                "suivais",
-                                "suivez",
-                                "suis"
-                ],
-                "suivre-imparfait-ils": [
-                                "suivaient",
-                                "suivais",
-                                "suivent",
-                                "suis"
-                ],
-                "suivre-imparfait-elles": [
-                                "suivaient",
-                                "suivais",
-                                "suivent",
-                                "suis"
-                ],
-                "suivre-futur-je": [
-                                "suivrai",
-                                "suivras",
-                                "suis",
-                                "suit"
-                ],
-                "suivre-futur-tu": [
-                                "suivras",
-                                "suivrai",
-                                "suis",
-                                "suit"
-                ],
-                "suivre-futur-il": [
-                                "suivra",
-                                "suivrai",
-                                "suit",
-                                "suis"
-                ],
-                "suivre-futur-elle": [
-                                "suivra",
-                                "suivrai",
-                                "suit",
-                                "suis"
-                ],
-                "suivre-futur-nous": [
-                                "suivrons",
-                                "suivrai",
-                                "suivons",
-                                "suis"
-                ],
-                "suivre-futur-vous": [
-                                "suivrez",
-                                "suivrai",
-                                "suivez",
-                                "suis"
-                ],
-                "suivre-futur-ils": [
-                                "suivront",
-                                "suivrai",
-                                "suivent",
-                                "suis"
-                ],
-                "suivre-futur-elles": [
-                                "suivront",
-                                "suivrai",
-                                "suivent",
-                                "suis"
-                ],
-                "suivre-passé-je": [
-                                "ai suivi",
-                                "as suivi",
-                                "suis",
-                                "suit"
-                ],
-                "suivre-passé-tu": [
-                                "as suivi",
-                                "ai suivi",
-                                "suis",
-                                "suit"
-                ],
-                "suivre-passé-il": [
-                                "a suivi",
-                                "ai suivi",
-                                "suit",
-                                "suis"
-                ],
-                "suivre-passé-elle": [
-                                "a suivi",
-                                "ai suivi",
-                                "suit",
-                                "suis"
-                ],
-                "suivre-passé-nous": [
-                                "avons suivi",
-                                "ai suivi",
-                                "suivons",
-                                "suis"
-                ],
-                "suivre-passé-vous": [
-                                "avez suivi",
-                                "ai suivi",
-                                "suivez",
-                                "suis"
-                ],
-                "suivre-passé-ils": [
-                                "ont suivi",
-                                "ai suivi",
-                                "suivent",
-                                "suis"
-                ],
-                "suivre-passé-elles": [
-                                "ont suivi",
-                                "ai suivi",
-                                "suivent",
-                                "suis"
-                ],
-                "suivre-simple-je": [
-                                "suivis",
-                                "suivit",
-                                "suis",
-                                "suit"
-                ],
-                "suivre-simple-tu": [
-                                "suivis",
-                                "suivit",
-                                "suis",
-                                "suit"
-                ],
-                "suivre-simple-il": [
-                                "suivit",
-                                "suivis",
-                                "suit",
-                                "suis"
-                ],
-                "suivre-simple-elle": [
-                                "suivit",
-                                "suivis",
-                                "suit",
-                                "suis"
-                ],
-                "suivre-simple-nous": [
-                                "suivîmes",
-                                "suivis",
-                                "suivons",
-                                "suis"
-                ],
-                "suivre-simple-vous": [
-                                "suivîtes",
-                                "suivis",
-                                "suivez",
-                                "suis"
-                ],
-                "suivre-simple-ils": [
-                                "suivirent",
-                                "suivis",
-                                "suivent",
-                                "suis"
-                ],
-                "suivre-simple-elles": [
-                                "suivirent",
-                                "suivis",
-                                "suivent",
-                                "suis"
-                ],
-                "venir-présent-je": [
-                                "viens",
-                                "vient",
-                                "venais",
-                                "venait"
-                ],
-                "venir-présent-tu": [
-                                "viens",
-                                "vient",
-                                "venais",
-                                "venait"
-                ],
-                "venir-présent-il": [
-                                "vient",
-                                "viens",
-                                "venait",
-                                "venais"
-                ],
-                "venir-présent-elle": [
-                                "vient",
-                                "viens",
-                                "venait",
-                                "venais"
-                ],
-                "venir-présent-nous": [
-                                "venons",
-                                "viens",
-                                "venions",
-                                "venais"
-                ],
-                "venir-présent-vous": [
-                                "venez",
-                                "viens",
-                                "veniez",
-                                "venais"
-                ],
-                "venir-présent-ils": [
-                                "viennent",
-                                "viens",
-                                "venaient",
-                                "venais"
-                ],
-                "venir-présent-elles": [
-                                "viennent",
-                                "viens",
-                                "venaient",
-                                "venais"
-                ],
-                "venir-imparfait-je": [
-                                "venais",
-                                "venait",
-                                "viens",
-                                "vient"
-                ],
-                "venir-imparfait-tu": [
-                                "venais",
-                                "venait",
-                                "viens",
-                                "vient"
-                ],
-                "venir-imparfait-il": [
-                                "venait",
-                                "venais",
-                                "vient",
-                                "viens"
-                ],
-                "venir-imparfait-elle": [
-                                "venait",
-                                "venais",
-                                "vient",
-                                "viens"
-                ],
-                "venir-imparfait-nous": [
-                                "venions",
-                                "venais",
-                                "venons",
-                                "viens"
-                ],
-                "venir-imparfait-vous": [
-                                "veniez",
-                                "venais",
-                                "venez",
-                                "viens"
-                ],
-                "venir-imparfait-ils": [
-                                "venaient",
-                                "venais",
-                                "viennent",
-                                "viens"
-                ],
-                "venir-imparfait-elles": [
-                                "venaient",
-                                "venais",
-                                "viennent",
-                                "viens"
-                ],
-                "venir-futur-je": [
-                                "viendrai",
-                                "viendras",
-                                "viens",
-                                "vient"
-                ],
-                "venir-futur-tu": [
-                                "viendras",
-                                "viendrai",
-                                "viens",
-                                "vient"
-                ],
-                "venir-futur-il": [
-                                "viendra",
-                                "viendrai",
-                                "vient",
-                                "viens"
-                ],
-                "venir-futur-elle": [
-                                "viendra",
-                                "viendrai",
-                                "vient",
-                                "viens"
-                ],
-                "venir-futur-nous": [
-                                "viendrons",
-                                "viendrai",
-                                "venons",
-                                "viens"
-                ],
-                "venir-futur-vous": [
-                                "viendrez",
-                                "viendrai",
-                                "venez",
-                                "viens"
-                ],
-                "venir-futur-ils": [
-                                "viendront",
-                                "viendrai",
-                                "viennent",
-                                "viens"
-                ],
-                "venir-futur-elles": [
-                                "viendront",
-                                "viendrai",
-                                "viennent",
-                                "viens"
-                ],
-                "venir-passé-je": [
-                                "suis venu",
-                                "es venu",
-                                "viens",
-                                "vient"
-                ],
-                "venir-passé-tu": [
-                                "es venu",
-                                "suis venu",
-                                "viens",
-                                "vient"
-                ],
-                "venir-passé-il": [
-                                "est venu",
-                                "suis venu",
-                                "vient",
-                                "viens"
-                ],
-                "venir-passé-elle": [
-                                "est venue",
-                                "suis venu",
-                                "vient",
-                                "viens"
-                ],
-                "venir-passé-nous": [
-                                "sommes venus",
-                                "suis venu",
-                                "venons",
-                                "viens"
-                ],
-                "venir-passé-vous": [
-                                "êtes venus",
-                                "suis venu",
-                                "venez",
-                                "viens"
-                ],
-                "venir-passé-ils": [
-                                "sont venus",
-                                "suis venu",
-                                "viennent",
-                                "viens"
-                ],
-                "venir-passé-elles": [
-                                "sont venues",
-                                "suis venu",
-                                "viennent",
-                                "viens"
-                ],
-                "venir-simple-je": [
-                                "vins",
-                                "vint",
-                                "viens",
-                                "vient"
-                ],
-                "venir-simple-tu": [
-                                "vins",
-                                "vint",
-                                "viens",
-                                "vient"
-                ],
-                "venir-simple-il": [
-                                "vint",
-                                "vins",
-                                "vient",
-                                "viens"
-                ],
-                "venir-simple-elle": [
-                                "vint",
-                                "vins",
-                                "vient",
-                                "viens"
-                ],
-                "venir-simple-nous": [
-                                "vînmes",
-                                "vins",
-                                "venons",
-                                "viens"
-                ],
-                "venir-simple-vous": [
-                                "vîntes",
-                                "vins",
-                                "venez",
-                                "viens"
-                ],
-                "venir-simple-ils": [
-                                "vinrent",
-                                "vins",
-                                "viennent",
-                                "viens"
-                ],
-                "venir-simple-elles": [
-                                "vinrent",
-                                "vins",
-                                "viennent",
-                                "viens"
-                ],
-                "vouloir-présent-je": [
-                                "veux",
-                                "veut",
-                                "voulais",
-                                "voulait"
-                ],
-                "vouloir-présent-tu": [
-                                "veux",
-                                "veut",
-                                "voulais",
-                                "voulait"
-                ],
-                "vouloir-présent-il": [
-                                "veut",
-                                "veux",
-                                "voulait",
-                                "voulais"
-                ],
-                "vouloir-présent-elle": [
-                                "veut",
-                                "veux",
-                                "voulait",
-                                "voulais"
-                ],
-                "vouloir-présent-nous": [
-                                "voulons",
-                                "veux",
-                                "voulions",
-                                "voulais"
-                ],
-                "vouloir-présent-vous": [
-                                "voulez",
-                                "veux",
-                                "vouliez",
-                                "voulais"
-                ],
-                "vouloir-présent-ils": [
-                                "veulent",
-                                "veux",
-                                "voulaient",
-                                "voulais"
-                ],
-                "vouloir-présent-elles": [
-                                "veulent",
-                                "veux",
-                                "voulaient",
-                                "voulais"
-                ],
-                "vouloir-imparfait-je": [
-                                "voulais",
-                                "voulait",
-                                "veux",
-                                "veut"
-                ],
-                "vouloir-imparfait-tu": [
-                                "voulais",
-                                "voulait",
-                                "veux",
-                                "veut"
-                ],
-                "vouloir-imparfait-il": [
-                                "voulait",
-                                "voulais",
-                                "veut",
-                                "veux"
-                ],
-                "vouloir-imparfait-elle": [
-                                "voulait",
-                                "voulais",
-                                "veut",
-                                "veux"
-                ],
-                "vouloir-imparfait-nous": [
-                                "voulions",
-                                "voulais",
-                                "voulons",
-                                "veux"
-                ],
-                "vouloir-imparfait-vous": [
-                                "vouliez",
-                                "voulais",
-                                "voulez",
-                                "veux"
-                ],
-                "vouloir-imparfait-ils": [
-                                "voulaient",
-                                "voulais",
-                                "veulent",
-                                "veux"
-                ],
-                "vouloir-imparfait-elles": [
-                                "voulaient",
-                                "voulais",
-                                "veulent",
-                                "veux"
-                ],
-                "vouloir-futur-je": [
-                                "voudrai",
-                                "voudras",
-                                "veux",
-                                "veut"
-                ],
-                "vouloir-futur-tu": [
-                                "voudras",
-                                "voudrai",
-                                "veux",
-                                "veut"
-                ],
-                "vouloir-futur-il": [
-                                "voudra",
-                                "voudrai",
-                                "veut",
-                                "veux"
-                ],
-                "vouloir-futur-elle": [
-                                "voudra",
-                                "voudrai",
-                                "veut",
-                                "veux"
-                ],
-                "vouloir-futur-nous": [
-                                "voudrons",
-                                "voudrai",
-                                "voulons",
-                                "veux"
-                ],
-                "vouloir-futur-vous": [
-                                "voudrez",
-                                "voudrai",
-                                "voulez",
-                                "veux"
-                ],
-                "vouloir-futur-ils": [
-                                "voudront",
-                                "voudrai",
-                                "veulent",
-                                "veux"
-                ],
-                "vouloir-futur-elles": [
-                                "voudront",
-                                "voudrai",
-                                "veulent",
-                                "veux"
-                ],
-                "vouloir-passé-je": [
-                                "ai voulu",
-                                "as voulu",
-                                "veux",
-                                "veut"
-                ],
-                "vouloir-passé-tu": [
-                                "as voulu",
-                                "ai voulu",
-                                "veux",
-                                "veut"
-                ],
-                "vouloir-passé-il": [
-                                "a voulu",
-                                "ai voulu",
-                                "veut",
-                                "veux"
-                ],
-                "vouloir-passé-elle": [
-                                "a voulu",
-                                "ai voulu",
-                                "veut",
-                                "veux"
-                ],
-                "vouloir-passé-nous": [
-                                "avons voulu",
-                                "ai voulu",
-                                "voulons",
-                                "veux"
-                ],
-                "vouloir-passé-vous": [
-                                "avez voulu",
-                                "ai voulu",
-                                "voulez",
-                                "veux"
-                ],
-                "vouloir-passé-ils": [
-                                "ont voulu",
-                                "ai voulu",
-                                "veulent",
-                                "veux"
-                ],
-                "vouloir-passé-elles": [
-                                "ont voulu",
-                                "ai voulu",
-                                "veulent",
-                                "veux"
-                ],
-                "vouloir-simple-je": [
-                                "voulus",
-                                "voulut",
-                                "veux",
-                                "veut"
-                ],
-                "vouloir-simple-tu": [
-                                "voulus",
-                                "voulut",
-                                "veux",
-                                "veut"
-                ],
-                "vouloir-simple-il": [
-                                "voulut",
-                                "voulus",
-                                "veut",
-                                "veux"
-                ],
-                "vouloir-simple-elle": [
-                                "voulut",
-                                "voulus",
-                                "veut",
-                                "veux"
-                ],
-                "vouloir-simple-nous": [
-                                "voulûmes",
-                                "voulus",
-                                "voulons",
-                                "veux"
-                ],
-                "vouloir-simple-vous": [
-                                "voulûtes",
-                                "voulus",
-                                "voulez",
-                                "veux"
-                ],
-                "vouloir-simple-ils": [
-                                "voulurent",
-                                "voulus",
-                                "veulent",
-                                "veux"
-                ],
-                "vouloir-simple-elles": [
-                                "voulurent",
-                                "voulus",
-                                "veulent",
-                                "veux"
-                ],
-                "écrire-présent-je": [
-                                "écris",
-                                "écrit",
-                                "écrivais",
-                                "écrivait"
-                ],
-                "écrire-présent-tu": [
-                                "écris",
-                                "écrit",
-                                "écrivais",
-                                "écrivait"
-                ],
-                "écrire-présent-il": [
-                                "écrit",
-                                "écris",
-                                "écrivait",
-                                "écrivais"
-                ],
-                "écrire-présent-elle": [
-                                "écrit",
-                                "écris",
-                                "écrivait",
-                                "écrivais"
-                ],
-                "écrire-présent-nous": [
-                                "écrivons",
-                                "écris",
-                                "écrivions",
-                                "écrivais"
-                ],
-                "écrire-présent-vous": [
-                                "écrivez",
-                                "écris",
-                                "écriviez",
-                                "écrivais"
-                ],
-                "écrire-présent-ils": [
-                                "écrivent",
-                                "écris",
-                                "écrivaient",
-                                "écrivais"
-                ],
-                "écrire-présent-elles": [
-                                "écrivent",
-                                "écris",
-                                "écrivaient",
-                                "écrivais"
-                ],
-                "écrire-imparfait-je": [
-                                "écrivais",
-                                "écrivait",
-                                "écris",
-                                "écrit"
-                ],
-                "écrire-imparfait-tu": [
-                                "écrivais",
-                                "écrivait",
-                                "écris",
-                                "écrit"
-                ],
-                "écrire-imparfait-il": [
-                                "écrivait",
-                                "écrivais",
-                                "écrit",
-                                "écris"
-                ],
-                "écrire-imparfait-elle": [
-                                "écrivait",
-                                "écrivais",
-                                "écrit",
-                                "écris"
-                ],
-                "écrire-imparfait-nous": [
-                                "écrivions",
-                                "écrivais",
-                                "écrivons",
-                                "écris"
-                ],
-                "écrire-imparfait-vous": [
-                                "écriviez",
-                                "écrivais",
-                                "écrivez",
-                                "écris"
-                ],
-                "écrire-imparfait-ils": [
-                                "écrivaient",
-                                "écrivais",
-                                "écrivent",
-                                "écris"
-                ],
-                "écrire-imparfait-elles": [
-                                "écrivaient",
-                                "écrivais",
-                                "écrivent",
-                                "écris"
-                ],
-                "écrire-futur-je": [
-                                "écrirai",
-                                "écriras",
-                                "écris",
-                                "écrit"
-                ],
-                "écrire-futur-tu": [
-                                "écriras",
-                                "écrirai",
-                                "écris",
-                                "écrit"
-                ],
-                "écrire-futur-il": [
-                                "écrira",
-                                "écrirai",
-                                "écrit",
-                                "écris"
-                ],
-                "écrire-futur-elle": [
-                                "écrira",
-                                "écrirai",
-                                "écrit",
-                                "écris"
-                ],
-                "écrire-futur-nous": [
-                                "écrirons",
-                                "écrirai",
-                                "écrivons",
-                                "écris"
-                ],
-                "écrire-futur-vous": [
-                                "écrirez",
-                                "écrirai",
-                                "écrivez",
-                                "écris"
-                ],
-                "écrire-futur-ils": [
-                                "écriront",
-                                "écrirai",
-                                "écrivent",
-                                "écris"
-                ],
-                "écrire-futur-elles": [
-                                "écriront",
-                                "écrirai",
-                                "écrivent",
-                                "écris"
-                ],
-                "écrire-passé-je": [
-                                "ai écrit",
-                                "as écrit",
-                                "écris",
-                                "écrit"
-                ],
-                "écrire-passé-tu": [
-                                "as écrit",
-                                "ai écrit",
-                                "écris",
-                                "écrit"
-                ],
-                "écrire-passé-il": [
-                                "a écrit",
-                                "ai écrit",
-                                "écrit",
-                                "écris"
-                ],
-                "écrire-passé-elle": [
-                                "a écrit",
-                                "ai écrit",
-                                "écrit",
-                                "écris"
-                ],
-                "écrire-passé-nous": [
-                                "avons écrit",
-                                "ai écrit",
-                                "écrivons",
-                                "écris"
-                ],
-                "écrire-passé-vous": [
-                                "avez écrit",
-                                "ai écrit",
-                                "écrivez",
-                                "écris"
-                ],
-                "écrire-passé-ils": [
-                                "ont écrit",
-                                "ai écrit",
-                                "écrivent",
-                                "écris"
-                ],
-                "écrire-passé-elles": [
-                                "ont écrit",
-                                "ai écrit",
-                                "écrivent",
-                                "écris"
-                ],
-                "écrire-simple-je": [
-                                "écrivis",
-                                "écrivit",
-                                "écris",
-                                "écrit"
-                ],
-                "écrire-simple-tu": [
-                                "écrivis",
-                                "écrivit",
-                                "écris",
-                                "écrit"
-                ],
-                "écrire-simple-il": [
-                                "écrivit",
-                                "écrivis",
-                                "écrit",
-                                "écris"
-                ],
-                "écrire-simple-elle": [
-                                "écrivit",
-                                "écrivis",
-                                "écrit",
-                                "écris"
-                ],
-                "écrire-simple-nous": [
-                                "écrivîmes",
-                                "écrivis",
-                                "écrivons",
-                                "écris"
-                ],
-                "écrire-simple-vous": [
-                                "écrivîtes",
-                                "écrivis",
-                                "écrivez",
-                                "écris"
-                ],
-                "écrire-simple-ils": [
-                                "écrivirent",
-                                "écrivis",
-                                "écrivent",
-                                "écris"
-                ],
-                "écrire-simple-elles": [
-                                "écrivirent",
-                                "écrivis",
-                                "écrivent",
-                                "écris"
-                ],
-                "être-présent-je": [
-                                "suis",
-                                "es",
-                                "étais",
-                                "était"
-                ],
-                "être-présent-tu": [
-                                "es",
-                                "suis",
-                                "étais",
-                                "était"
-                ],
-                "être-présent-il": [
-                                "est",
-                                "suis",
-                                "était",
-                                "étais"
-                ],
-                "être-présent-elle": [
-                                "est",
-                                "suis",
-                                "était",
-                                "étais"
-                ],
-                "être-présent-nous": [
-                                "sommes",
-                                "suis",
-                                "étions",
-                                "étais"
-                ],
-                "être-présent-vous": [
-                                "êtes",
-                                "suis",
-                                "étiez",
-                                "étais"
-                ],
-                "être-présent-ils": [
-                                "sont",
-                                "suis",
-                                "étaient",
-                                "étais"
-                ],
-                "être-présent-elles": [
-                                "sont",
-                                "suis",
-                                "étaient",
-                                "étais"
-                ],
-                "être-imparfait-je": [
-                                "étais",
-                                "était",
-                                "suis",
-                                "es"
-                ],
-                "être-imparfait-tu": [
-                                "étais",
-                                "était",
-                                "es",
-                                "suis"
-                ],
-                "être-imparfait-il": [
-                                "était",
-                                "étais",
-                                "est",
-                                "suis"
-                ],
-                "être-imparfait-elle": [
-                                "était",
-                                "étais",
-                                "est",
-                                "suis"
-                ],
-                "être-imparfait-nous": [
-                                "étions",
-                                "étais",
-                                "sommes",
-                                "suis"
-                ],
-                "être-imparfait-vous": [
-                                "étiez",
-                                "étais",
-                                "êtes",
-                                "suis"
-                ],
-                "être-imparfait-ils": [
-                                "étaient",
-                                "étais",
-                                "sont",
-                                "suis"
-                ],
-                "être-imparfait-elles": [
-                                "étaient",
-                                "étais",
-                                "sont",
-                                "suis"
-                ],
-                "être-futur-je": [
-                                "serai",
-                                "seras",
-                                "suis",
-                                "es"
-                ],
-                "être-futur-tu": [
-                                "seras",
-                                "serai",
-                                "es",
-                                "suis"
-                ],
-                "être-futur-il": [
-                                "sera",
-                                "serai",
-                                "est",
-                                "suis"
-                ],
-                "être-futur-elle": [
-                                "sera",
-                                "serai",
-                                "est",
-                                "suis"
-                ],
-                "être-futur-nous": [
-                                "serons",
-                                "serai",
-                                "sommes",
-                                "suis"
-                ],
-                "être-futur-vous": [
-                                "serez",
-                                "serai",
-                                "êtes",
-                                "suis"
-                ],
-                "être-futur-ils": [
-                                "seront",
-                                "serai",
-                                "sont",
-                                "suis"
-                ],
-                "être-futur-elles": [
-                                "seront",
-                                "serai",
-                                "sont",
-                                "suis"
-                ],
-                "être-passé-je": [
-                                "ai été",
-                                "as été",
-                                "suis",
-                                "es"
-                ],
-                "être-passé-tu": [
-                                "as été",
-                                "ai été",
-                                "es",
-                                "suis"
-                ],
-                "être-passé-il": [
-                                "a été",
-                                "ai été",
-                                "est",
-                                "suis"
-                ],
-                "être-passé-elle": [
-                                "a été",
-                                "ai été",
-                                "est",
-                                "suis"
-                ],
-                "être-passé-nous": [
-                                "avons été",
-                                "ai été",
-                                "sommes",
-                                "suis"
-                ],
-                "être-passé-vous": [
-                                "avez été",
-                                "ai été",
-                                "êtes",
-                                "suis"
-                ],
-                "être-passé-ils": [
-                                "ont été",
-                                "ai été",
-                                "sont",
-                                "suis"
-                ],
-                "être-passé-elles": [
-                                "ont été",
-                                "ai été",
-                                "sont",
-                                "suis"
-                ],
-                "être-simple-je": [
-                                "fus",
-                                "fut",
-                                "suis",
-                                "es"
-                ],
-                "être-simple-tu": [
-                                "fus",
-                                "fut",
-                                "es",
-                                "suis"
-                ],
-                "être-simple-il": [
-                                "fut",
-                                "fus",
-                                "est",
-                                "suis"
-                ],
-                "être-simple-elle": [
-                                "fut",
-                                "fus",
-                                "est",
-                                "suis"
-                ],
-                "être-simple-nous": [
-                                "fûmes",
-                                "fus",
-                                "sommes",
-                                "suis"
-                ],
-                "être-simple-vous": [
-                                "fûtes",
-                                "fus",
-                                "êtes",
-                                "suis"
-                ],
-                "être-simple-ils": [
-                                "furent",
-                                "fus",
-                                "sont",
-                                "suis"
-                ],
-                "être-simple-elles": [
-                                "furent",
-                                "fus",
-                                "sont",
-                                "suis"
-                ]
-},
+            qcmData: {},
             currentMiniGame: null,
             gameKeys: {},
             gameRunning: false,
@@ -4704,7 +1909,7 @@
                 // TOUJOURS utiliser la constante VERBS_DB — jamais le localStorage
                 this.verbsDB = VERBS_DB;
                 this.defaultAnswers = {};
-                this.qcmData = {};
+                this.qcmData = Object.assign({}, DEFAULT_QCM);
                 this.arcadePrice = 3;
                 this.setupTensesCheckboxes();
 
@@ -4741,7 +1946,7 @@
                     try { r = JSON.parse(safeLS.get('conj_reglages_cache') || 'null'); } catch (err) { r = null; }
                 }
                 if (!r) return;
-                this.qcmData = (r.qcm && typeof r.qcm === 'object') ? r.qcm : {};
+                this.qcmData = Object.assign({}, DEFAULT_QCM, (r.qcm && typeof r.qcm === 'object') ? r.qcm : {});
                 this.arcadePrice = Number.isFinite(parseInt(r.prix_arcade)) ? parseInt(r.prix_arcade) : 3;
                 this.applyAnswerOverrides((r.reponses && typeof r.reponses === 'object') ? r.reponses : {});
             },
@@ -5128,8 +2333,17 @@
                     document.getElementById('qcmOpt3').value.trim()
                 ].filter(o => o);
 
-                if (options.length < 2) {
-                    alert('❌ Besoin d\'au moins 2 options!');
+                if (options.length < 4) {
+                    alert('❌ Il faut 4 propositions.');
+                    return;
+                }
+                if (new Set(options.map(o => o.toLowerCase())).size < 4) {
+                    alert('❌ Les 4 propositions doivent être toutes différentes.');
+                    return;
+                }
+                const bonneReponse = document.getElementById('fillBlanksAnswer').value.trim() || this.getCorrectAnswer(verb, tense, pronoun);
+                if (!options.some(o => o.toLowerCase() === bonneReponse.toLowerCase())) {
+                    alert(`❌ La bonne réponse « ${bonneReponse} » doit faire partie des 4 propositions.`);
                     return;
                 }
 
@@ -5666,17 +2880,24 @@
 
             getQCMOptions(verb, tense, pronoun) {
                 const key = `${verb}-${tense}-${pronoun}`;
-                if (this.qcmData[key]) {
-                    return [...this.qcmData[key]].sort(() => Math.random() - 0.5);
-                }
-                
-                const options = [this.verbsDB[verb][tense][pronoun]];
-                const otherPronouns = PRONOUNS.filter(p => p !== pronoun);
-                for (let p of otherPronouns) {
-                    if (options.length < 4) {
-                        options.push(this.verbsDB[verb][tense][p]);
-                    }
-                }
+                const correct = this.verbsDB[verb][tense][pronoun];
+                const seen = new Set();
+                const options = [];
+                const add = (o) => {
+                    if (typeof o !== 'string') return;
+                    const v = o.trim();
+                    const low = v.toLowerCase();
+                    if (!v || seen.has(low) || options.length >= 4) return;
+                    seen.add(low);
+                    options.push(v);
+                };
+                // La bonne réponse est toujours présente, puis les pièges (admin puis défaut),
+                // puis d'autres formes du verbe si jamais il en manque.
+                add(correct);
+                (this.qcmData[key] || []).forEach(add);
+                (DEFAULT_QCM[key] || []).forEach(add);
+                PRONOUNS.forEach(p => add(this.verbsDB[verb][tense][p]));
+                Object.keys(this.verbsDB[verb]).forEach(t => add(this.verbsDB[verb][t][pronoun]));
                 return options.sort(() => Math.random() - 0.5);
             },
 
