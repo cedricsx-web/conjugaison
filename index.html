@@ -39,6 +39,9 @@
         button:active { transform: scale(0.98); }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-full { width: 100%; }
+        .snake-pad { display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(3, 56px); grid-template-areas: ". up ." "left . right" ". down ."; gap: 6px; justify-content: center; }
+        .snake-key { background: #43523d; color: #c7f0d8; border: none; border-radius: 12px; font-size: 1.5rem; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+        .snake-key:active { background: #2b3527; }
         .btn-primary { background: #3b82f6; color: white; }
         .btn-primary:hover { background: #2563eb; }
         .btn-success { background: #10b981; color: white; }
@@ -273,6 +276,7 @@
                 <h2>🎮 Choisis un jeu <span class="close-btn" onclick="document.getElementById('miniGamesModal').classList.remove('active')">✕</span></h2>
                 <button class="btn-primary btn-full" onclick="app.startMiniGame('pong')" id="pongBtn">🏓 Pong</button>
                 <button class="btn-primary btn-full" onclick="app.startMiniGame('spaceInvaders')" id="spaceBtn">👾 Space Invaders</button>
+                <button class="btn-primary btn-full" onclick="app.startMiniGame('snake')" id="snakeBtn">🐍 Snake</button>
             </div>
         </div>
 
@@ -310,6 +314,17 @@
                 <!-- Pong Controls -->
                 <div id="pongControls" style="display: none; margin-top: 1rem; text-align: center;">
                     <p style="font-size: 0.875rem; color: #94a3b8; margin-bottom: 0.5rem;">Déplace ta souris / doigt vers le haut ou bas</p>
+                </div>
+
+                <!-- Snake Controls -->
+                <div id="snakeControls" style="display: none; margin-top: 1rem;">
+                    <p style="font-size: 0.875rem; color: #94a3b8; text-align: center; margin-bottom: 0.5rem;">Glisse ton doigt sur l'écran, touche les flèches ou utilise le clavier</p>
+                    <div class="snake-pad">
+                        <button type="button" class="snake-key" style="grid-area: up;" onpointerdown="event.preventDefault(); app.snakeTurn('up')" aria-label="Haut">▲</button>
+                        <button type="button" class="snake-key" style="grid-area: left;" onpointerdown="event.preventDefault(); app.snakeTurn('left')" aria-label="Gauche">◀</button>
+                        <button type="button" class="snake-key" style="grid-area: right;" onpointerdown="event.preventDefault(); app.snakeTurn('right')" aria-label="Droite">▶</button>
+                        <button type="button" class="snake-key" style="grid-area: down;" onpointerdown="event.preventDefault(); app.snakeTurn('down')" aria-label="Bas">▼</button>
+                    </div>
                 </div>
 
                 <!-- Space Invaders Controls -->
@@ -2528,6 +2543,8 @@
                     this.initPong(canvas);
                 } else if (this.currentMiniGame === 'spaceInvaders') {
                     this.initSpaceInvaders(canvas);
+                } else if (this.currentMiniGame === 'snake') {
+                    this.initSnake(canvas);
                 }
             },
 
@@ -2823,7 +2840,179 @@
                 loop();
             },
 
+            // ===== SNAKE (style Nokia) =====
+            snakeTurn(dir) {
+                const g = this.snakeGame;
+                if (!g || !g.running) return;
+                const opposite = { up: 'down', down: 'up', left: 'right', right: 'left' };
+                const last = g.queue.length ? g.queue[g.queue.length - 1] : g.dir;
+                if (dir === last || (g.started && dir === opposite[last]) || g.queue.length >= 2) return;
+                g.queue.push(dir);
+                if (!g.started) {
+                    g.started = true;
+                    g.lastStep = performance.now();
+                    document.getElementById('gameMessage').innerHTML = '';
+                }
+            },
+
+            initSnake(canvas) {
+                document.getElementById('pongControls').style.display = 'none';
+                document.getElementById('spaceControls').style.display = 'none';
+                document.getElementById('snakeControls').style.display = 'block';
+                this.gameRunning = true;
+                const self = this;
+                const ctx = canvas.getContext('2d');
+
+                const LCD = '#c7f0d8', INK = '#43523d', SHADE = '#b3d9c1';
+                const CELL = 20, COLS = canvas.width / CELL, ROWS = canvas.height / CELL;
+                const TOP = 2;          // 2 lignes réservées au score
+                const GOAL = 15;        // pommes à manger pour gagner
+
+                const g = {
+                    snake: [{ x: 8, y: 10 }, { x: 7, y: 10 }, { x: 6, y: 10 }],
+                    dir: 'right', queue: [], food: null, eaten: 0,
+                    started: false, running: true, stepMs: 170, lastStep: 0
+                };
+                this.snakeGame = g;
+
+                const placeFood = () => {
+                    let f;
+                    do {
+                        f = { x: 1 + Math.floor(Math.random() * (COLS - 2)), y: TOP + 1 + Math.floor(Math.random() * (ROWS - TOP - 2)) };
+                    } while (g.snake.some(s => s.x === f.x && s.y === f.y));
+                    g.food = f;
+                };
+                placeFood();
+
+                // Clavier (flèches + ZQSD/WASD)
+                const keyMap = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+                                 z: 'up', w: 'up', s: 'down', q: 'left', a: 'left', d: 'right' };
+                const onKey = (e) => {
+                    const dir = keyMap[e.key] || keyMap[(e.key || '').toLowerCase()];
+                    if (dir) { e.preventDefault(); self.snakeTurn(dir); }
+                };
+                // Glisser le doigt sur l'écran
+                let startX = 0, startY = 0;
+                const onTouchStart = (e) => { e.preventDefault(); startX = e.touches[0].clientX; startY = e.touches[0].clientY; };
+                const onTouchMove = (e) => {
+                    e.preventDefault();
+                    const dx = e.touches[0].clientX - startX, dy = e.touches[0].clientY - startY;
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+                    self.snakeTurn(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+                    startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+                };
+                document.addEventListener('keydown', onKey);
+                canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+                canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+                g.cleanup = () => {
+                    document.removeEventListener('keydown', onKey);
+                    canvas.removeEventListener('touchstart', onTouchStart);
+                    canvas.removeEventListener('touchmove', onTouchMove);
+                };
+
+                const end = (msg, won) => {
+                    g.running = false;
+                    if (won) {
+                        self.credits++;
+                        storage.setCredits(self.username, self.credits);
+                        self.updateUI();
+                    }
+                    document.getElementById('gameMessage').innerHTML = msg;
+                    g.cleanup();
+                    draw(!won);
+                };
+
+                const step = () => {
+                    if (g.queue.length) g.dir = g.queue.shift();
+                    const head = g.snake[0];
+                    const n = { x: head.x + (g.dir === 'right') - (g.dir === 'left'), y: head.y + (g.dir === 'down') - (g.dir === 'up') };
+                    const eating = g.food && n.x === g.food.x && n.y === g.food.y;
+                    const body = eating ? g.snake : g.snake.slice(0, -1);   // la queue avance sauf si on mange
+                    if (n.x < 0 || n.x >= COLS || n.y < TOP || n.y >= ROWS) return end(`☠️ Perdu! Le serpent a touché le mur. ${g.eaten} pomme${g.eaten > 1 ? 's' : ''} mangée${g.eaten > 1 ? 's' : ''}.`, false);
+                    if (body.some(s => s.x === n.x && s.y === n.y)) return end(`☠️ Perdu! Le serpent s'est mordu la queue. ${g.eaten} pomme${g.eaten > 1 ? 's' : ''} mangée${g.eaten > 1 ? 's' : ''}.`, false);
+                    g.snake = [n, ...body];
+                    if (eating) {
+                        g.eaten++;
+                        g.stepMs = Math.max(85, g.stepMs - 6);
+                        if (g.eaten >= GOAL) return end(`🌟 Gagné! ${GOAL} pommes mangées! +1 crédit!`, true);
+                        placeFood();
+                    }
+                };
+
+                const px = (x, y) => ctx.fillRect(x * CELL + 2, y * CELL + 2, CELL - 4, CELL - 4);
+                const draw = (dead) => {
+                    ctx.fillStyle = LCD;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    // grille LCD légère
+                    ctx.fillStyle = SHADE;
+                    for (let y = TOP; y < ROWS; y++) for (let x = 0; x < COLS; x++) ctx.fillRect(x * CELL + 9, y * CELL + 9, 2, 2);
+                    // score façon Nokia
+                    ctx.fillStyle = INK;
+                    ctx.font = 'bold 22px "Courier New", monospace';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(String(g.eaten * 7).padStart(4, '0'), 10, CELL);
+                    ctx.textAlign = 'right';
+                    ctx.fillText(`${g.eaten}/${GOAL}`, canvas.width - 10, CELL);
+                    ctx.textAlign = 'left';
+                    // bordure du terrain
+                    ctx.fillRect(0, TOP * CELL - 4, canvas.width, 3);
+                    ctx.strokeStyle = INK; ctx.lineWidth = 3;
+                    ctx.strokeRect(1.5, TOP * CELL - 2.5, canvas.width - 3, canvas.height - TOP * CELL + 1);
+                    // pomme (petit losange)
+                    if (g.food) {
+                        const cx = g.food.x * CELL + CELL / 2, cy = g.food.y * CELL + CELL / 2;
+                        ctx.fillRect(cx - 2, cy - 7, 4, 4); ctx.fillRect(cx - 7, cy - 2, 4, 4);
+                        ctx.fillRect(cx + 3, cy - 2, 4, 4); ctx.fillRect(cx - 2, cy + 3, 4, 4);
+                    }
+                    // serpent
+                    g.snake.forEach((s, i) => {
+                        ctx.fillStyle = INK;
+                        px(s.x, s.y);
+                        if (i === 0) { // œil
+                            ctx.fillStyle = LCD;
+                            ctx.fillRect(s.x * CELL + 8, s.y * CELL + 8, 4, 4);
+                        }
+                    });
+                    if (!g.started && g.running) {
+                        ctx.fillStyle = INK;
+                        ctx.font = 'bold 18px "Courier New", monospace';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Choisis une direction', canvas.width / 2, canvas.height / 2 + 60);
+                        ctx.fillText('pour commencer', canvas.width / 2, canvas.height / 2 + 84);
+                        ctx.textAlign = 'left';
+                    }
+                    if (dead) {
+                        ctx.fillStyle = 'rgba(67, 82, 61, 0.85)';
+                        ctx.fillRect(40, canvas.height / 2 - 30, canvas.width - 80, 60);
+                        ctx.fillStyle = LCD;
+                        ctx.font = 'bold 26px "Courier New", monospace';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+                        ctx.textAlign = 'left';
+                    }
+                };
+
+                const loop = (now) => {
+                    if (!g.running || self.snakeGame !== g || self.currentMiniGame !== 'snake') return;
+                    if (g.started && now - g.lastStep >= g.stepMs) {
+                        g.lastStep = now;
+                        step();
+                        if (!g.running) return;
+                    }
+                    draw(false);
+                    requestAnimationFrame(loop);
+                };
+                document.getElementById('gameMessage').innerHTML = `🍎 Mange ${GOAL} pommes pour gagner 1 crédit!`;
+                requestAnimationFrame(loop);
+            },
+
             stopMiniGame() {
+                if (this.snakeGame) {
+                    this.snakeGame.running = false;
+                    if (this.snakeGame.cleanup) this.snakeGame.cleanup();
+                    this.snakeGame = null;
+                }
+                document.getElementById('snakeControls').style.display = 'none';
                 this.currentMiniGame = null;
                 this.gameRunning = false;
                 this.gameKeys = {};
@@ -3149,12 +3338,15 @@
 
                 const pongBtn = document.getElementById('pongBtn');
                 const spaceBtn = document.getElementById('spaceBtn');
+                const snakeBtn = document.getElementById('snakeBtn');
                 if (this.credits < this.arcadePrice) {
                     if (pongBtn) pongBtn.disabled = true;
                     if (spaceBtn) spaceBtn.disabled = true;
+                    if (snakeBtn) snakeBtn.disabled = true;
                 } else {
                     if (pongBtn) pongBtn.disabled = false;
                     if (spaceBtn) spaceBtn.disabled = false;
+                    if (snakeBtn) snakeBtn.disabled = false;
                 }
             }
         };
