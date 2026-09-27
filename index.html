@@ -2420,7 +2420,7 @@
                 let html = '';
 
                 // Classer les verbes alphabétiquement
-                const sortedVerbs = Object.keys(this.verbsDB).sort();
+                const sortedVerbs = Object.keys(this.verbsDB).sort((a, b) => a.localeCompare(b, 'fr'));
 
                 // Parcourir toutes les questions
                 for (const verb of sortedVerbs) {
@@ -2624,7 +2624,7 @@
                 const select = document.getElementById('fichesVerbSelect');
                 select.innerHTML = '<option value="">-- Sélectionne un verbe --</option>';
                 
-                const verbs = Object.keys(this.verbsDB).sort();
+                const verbs = Object.keys(this.verbsDB).sort((a, b) => a.localeCompare(b, 'fr'));
                 verbs.forEach(verb => {
                     const option = document.createElement('option');
                     option.value = verb;
@@ -3193,6 +3193,7 @@
                 this.score = 0;
                 this.answered = false;
                 this.gameTimer = mode === 'speedDrill' ? 120 : null; // 120 secondes pour Défi Rapide
+                document.getElementById('gameFeedback').innerHTML = ''; // Vider le feedback du jeu précédent
                 this.generateQuestions();
                 this.showScreen('game');
                 this.displayQuestion();
